@@ -1,0 +1,36 @@
+body {
+    background: #f8f9fa;
+}
+
+
+/* Product Card Hover */
+
+.product-card {
+    transition: all 0.3s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+
+/* Buttons */
+
+.btn {
+    border-radius: 25px;
+}
+
+
+/* Navbar */
+
+.navbar {
+    padding: 12px 0;
+}
+
+
+/* Forms */
+
+input, textarea {
+    border-radius: 10px !important;
+}

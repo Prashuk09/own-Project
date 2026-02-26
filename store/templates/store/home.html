@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row">
+
+  <!-- Sidebar -->
+
+  <div class="col-md-3">
+
+    <div class="list-group shadow-sm">
+
+      <a href="/"
+         class="list-group-item list-group-item-action fw-bold">
+
+        All Products
+
+      </a>
+
+      {% for cat in categories %}
+
+      <a href="/?cat={{ cat.id }}"
+         class="list-group-item list-group-item-action">
+
+        {{ cat.name }}
+
+      </a>
+
+      {% endfor %}
+
+    </div>
+
+  </div>
+
+{% for product in products %}
+
+<div class="col-md-3 col-sm-6 mb-4">
+
+  <div class="card h-100 shadow-sm border-0 product-card">
+
+    <img src="{{ product.image.url }}"
+         class="card-img-top p-3"
+         height="220"
+         style="object-fit:contain">
+
+    <div class="card-body text-center">
+
+      <h6 class="fw-bold">
+        <a href="{% url 'product_detail' product.id %}"
+          class="text-dark text-decoration-none">
+          {{ product.name }}
+        </a>
+      </h6>
+
+
+      <p class="text-muted small">
+        {{ product.description|truncatewords:10 }}
+      </p>
+
+      <h5 class="text-success">
+        ₹ {{ product.price }}
+      </h5>
+
+      <button
+        class="btn btn-primary w-100 mt-2 add-cart-btn"
+        data-id="{{ product.id }}">
+        Add to Cart
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+
+{% endfor %}
+
+</div>
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  document.querySelectorAll(".add-cart-btn").forEach(btn => {
+
+    btn.addEventListener("click", function(){
+
+      let productId = this.dataset.id;
+
+      fetch(`/cart/add/${productId}/`)
+
+      .then(res => res.json())
+
+      .then(data => {
+
+        if(data.status === "login_required"){
+
+          alert("Please login first 🔐");
+
+          window.location.href = "/login/";
+
+        }
+
+        else if(data.status === "success"){
+
+          alert("Added to cart ✅");
+
+        }
+
+      });
+
+    });
+
+  });
+
+});
+
+</script>
+{% endblock %}
+

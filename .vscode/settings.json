@@ -1,0 +1,7 @@
+{
+    "python.defaultInterpreterPath": "c:\\djangokart\\venv\\Scripts\\python.exe",
+    "python.analysis.extraPaths": [
+        "c:\\djangokart",
+        "c:\\djangokart\\venv\\Lib\\site-packages"
+    ]
+}

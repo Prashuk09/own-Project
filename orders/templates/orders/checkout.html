@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h3>Checkout</h3>
+<hr>
+
+<h5>Order Summary</h5>
+
+<ul class="list-group mb-3">
+
+{% for item in items %}
+
+<li class="list-group-item d-flex justify-content-between">
+
+  {{ item.product.name }} (x{{ item.quantity }})
+
+  <span>₹ {{ item.total_price }}</span>
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+<h4>Total: ₹ {{ total }}</h4>
+
+<hr>
+
+<h5>Delivery Details</h5>
+
+<form method="post">
+
+{% csrf_token %}
+
+<input type="text" name="name"
+       class="form-control mb-2"
+       placeholder="Full Name" required>
+
+<input type="text" name="phone"
+       class="form-control mb-2"
+       placeholder="Phone Number" required>
+
+<textarea name="address"
+          class="form-control mb-2"
+          placeholder="Full Address" required></textarea>
+
+<button class="btn btn-primary w-100">
+  Place Order
+</button>
+
+</form>
+
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Order Placed Successfully 🎉</h2>
+
+<p>Your Order ID: <b>#{{ order.id }}</b></p>
+
+<p>Status: {{ order.status }}</p>
+
+<p>Total: ₹ {{ order.total_amount }}</p>
+
+<a href="/" class="btn btn-success">
+  Continue Shopping
+</a>
+
+{% endblock %}

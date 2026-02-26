@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h3>My Profile</h3>
+<hr>
+
+<p><b>Username:</b> {{ user.username }}</p>
+<p><b>Email:</b> {{ user.email }}</p>
+<p><b>Date Joined:</b> {{ user.date_joined }}</p>
+
+<a href="{% url 'password_reset' %}"
+   class="btn btn-warning">
+  Change Password
+</a>
+
+{% endblock %}

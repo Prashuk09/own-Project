@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+  <div class="row">
+
+    <!-- Image -->
+
+    <div class="col-md-5 text-center">
+
+      <img src="{{ product.image.url }}"
+           class="img-fluid shadow-sm p-3"
+           style="max-height:400px; object-fit:contain;">
+
+    </div>
+
+    <!-- Info -->
+
+    <div class="col-md-7">
+
+      <h2 class="fw-bold">
+        {{ product.name }}
+      </h2>
+
+      <p class="text-muted mt-2">
+        {{ product.description }}
+      </p>
+
+      <h3 class="text-success mt-3">
+        ₹ {{ product.price }}
+      </h3>
+
+      <hr>
+
+      <button
+        class="btn btn-primary btn-lg add-cart-btn"
+        data-id="{{ product.id }}">
+
+        🛒 Add to Cart
+
+      </button>
+
+      <a href="/" class="btn btn-outline-secondary ms-2">
+        ← Back
+      </a>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- AJAX CART -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  document.querySelectorAll(".add-cart-btn").forEach(btn => {
+
+    btn.addEventListener("click", function(){
+
+      let productId = this.dataset.id;
+
+      fetch(`/cart/add/${productId}/`)
+
+      .then(res => res.json())
+
+      .then(data => {
+
+        if(data.status === "login_required"){
+          alert("Please login first");
+          window.location.href = "/login/";
+        }
+
+        else if(data.status === "success"){
+          alert("Added to cart ✅");
+        }
+
+      });
+
+    });
+
+  });
+
+});
+
+</script>
+
+<h3>Customer Reviews</h3>
+
+{% if reviews %}
+    {% for r in reviews %}
+        <p>
+            ⭐ {{ r.rating }}/5 <br>
+            {{ r.review }} <br>
+            - {{ r.user.username }}
+        </p>
+        <hr>
+    {% endfor %}
+{% else %}
+    <p>No reviews yet.</p>
+{% endif %}
+{% if has_ordered %}
+    <h4>Write a Review</h4>
+
+    <form method="POST" action="{% url 'add_review' product.id %}">
+        {% csrf_token %}
+
+        <input type="number" name="rating" min="1" max="5" required><br><br>
+
+        <textarea name="review" required></textarea><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
+
+{% else %}
+    
+{% endif %}
+
+{% endblock %}

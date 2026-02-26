@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h3>My Cart</h3>
+<hr>
+
+{% if items %}
+
+<table class="table table-hover shadow-sm">
+
+<tr>
+  <th>Product</th>
+  <th>Price</th>
+  <th>Qty</th>
+  <th>Total</th>
+  <th>Action</th>
+</tr>
+
+{% for item in items %}
+
+<tr id="row-{{ item.id }}">
+
+  <td>{{ item.product.name }}</td>
+
+  <td>₹ {{ item.product.price }}</td>
+
+  <td>
+
+    <button class="btn btn-sm btn-outline-secondary dec-btn"
+            data-id="{{ item.id }}">−</button>
+
+    <span id="qty-{{ item.id }}">{{ item.quantity }}</span>
+
+    <button class="btn btn-sm btn-outline-secondary inc-btn"
+            data-id="{{ item.id }}">+</button>
+
+  </td>
+
+  <td>₹ <span id="total-{{ item.id }}">{{ item.total_price }}</span></td>
+
+  <td>
+
+    <button class="btn btn-sm btn-danger remove-btn"
+            data-id="{{ item.id }}">
+      Remove item
+    </button>
+
+  </td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+<h4 id="cart-total" class="text-end text-success">
+  Total: ₹ {{ total }}
+</h4>
+
+{% else %}
+
+<p>Your cart is empty</p>
+
+{% endif %}
+
+{% if items %}
+
+  <!-- When cart has products -->
+
+  <a href="{% url 'checkout' %}"
+     class="btn btn-success mt-3">
+     Proceed to Checkout
+  </a>
+
+{% else %}
+
+  <!-- When cart is empty -->
+
+  <a href="/"
+     class="btn btn-primary mt-3">
+     Continue Shopping
+  </a>
+
+{% endif %}
+
+<!-- ✅ CART JS -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  // Increase
+  document.querySelectorAll(".inc-btn").forEach(btn => {
+
+    btn.addEventListener("click", function(){
+
+      let id = this.dataset.id;
+
+      fetch(`/cart/inc/${id}/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}"
+        }
+      })
+
+      .then(res => res.json())
+      .then(data => {
+
+        document.getElementById(`qty-${id}`).innerText = data.qty;
+        document.getElementById(`total-${id}`).innerText = data.total;
+
+        location.reload(); // simple refresh for total
+      });
+
+    });
+
+  });
+
+
+  // Decrease
+  document.querySelectorAll(".dec-btn").forEach(btn => {
+
+    btn.addEventListener("click", function(){
+
+      let id = this.dataset.id;
+
+      fetch(`/cart/dec/${id}/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}"
+        }
+      })
+
+      .then(res => res.json())
+      .then(data => {
+
+        document.getElementById(`qty-${id}`).innerText = data.qty;
+        document.getElementById(`total-${id}`).innerText = data.total;
+
+        location.reload();
+      });
+
+    });
+
+  });
+
+
+  // Remove
+  document.querySelectorAll(".remove-btn").forEach(btn => {
+
+    btn.addEventListener("click", function(){
+
+      let id = this.dataset.id;
+
+      if(!confirm("Remove item?")) return;
+
+      fetch(`/cart/remove/${id}/`, {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}"
+        }
+      })
+
+      .then(res => res.json())
+      .then(data => {
+
+        document.getElementById(`row-${id}`).remove();
+
+        location.reload();
+      });
+
+    });
+
+  });
+
+});
+
+</script>
+
+{% endblock %}
