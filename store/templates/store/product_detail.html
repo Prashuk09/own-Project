@@ -1,62 +1,133 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container mt-5 product-wrapper">
 
-  <div class="row">
+  <div class="row g-5 align-items-center">
 
-    <!-- Image -->
-
+    <!-- PRODUCT IMAGE -->
     <div class="col-md-5 text-center">
 
-      <img src="{{ product.image.url }}"
-           class="img-fluid shadow-sm p-3"
-           style="max-height:400px; object-fit:contain;">
+      <div class="product-image-box">
+
+        <img src="{{ product.image.url }}"
+             class="img-fluid">
+
+      </div>
 
     </div>
 
-    <!-- Info -->
-
+    <!-- PRODUCT INFO -->
     <div class="col-md-7">
 
-      <h2 class="fw-bold">
+      <h2 class="product-title">
         {{ product.name }}
       </h2>
 
-      <p class="text-muted mt-2">
+      <!-- ⭐ Rating -->
+      <div class="mb-2">
+
+        <span class="rating-stars">
+            {% for i in "12345" %}
+              {% if forloop.counter <= avg_rating_int %}
+                ★
+              {% else %}
+                ☆
+              {% endif %}
+            {% endfor %}
+          </span>
+
+        <span class="rating-text">
+          {{ avg_rating }} / 5
+          ({{ reviews.count }} reviews)
+        </span>
+
+      </div>
+
+      <p class="product-description">
         {{ product.description }}
       </p>
 
-      <h3 class="text-success mt-3">
+      <h3 class="product-price">
         ₹ {{ product.price }}
       </h3>
 
-      <hr>
+      <div class="mt-4">
 
-      <button
-        class="btn btn-primary btn-lg add-cart-btn"
-        data-id="{{ product.id }}">
+        <button
+          class="btn btn-primary btn-lg add-cart-btn me-2"
+          data-id="{{ product.id }}">
+          🛒 Add to Cart
+        </button>
 
-        🛒 Add to Cart
+        <a href="/" class="btn btn-outline-secondary btn-lg">
+          ← Continue Shopping
+        </a>
 
-      </button>
-
-      <a href="/" class="btn btn-outline-secondary ms-2">
-        ← Back
-      </a>
+      </div>
 
     </div>
 
   </div>
 
-</div>
+  <!-- REVIEWS -->
+  <div class="reviews-section mt-5">
 
+    <h4 class="mb-4">Customer Reviews</h4>
+
+    {% if reviews %}
+
+      {% for review in reviews %}
+
+      <div class="review-card">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+          <div>
+
+            <strong>{{ review.user.username }}</strong>
+
+            {% if review.user.id in verified_users %}
+              <span class="verified-badge">
+                ✔ Verified Buyer
+              </span>
+            {% endif %}
+
+          </div>
+
+          <div class="rating-stars small">
+            ⭐ {{ review.rating }}/5
+          </div>
+
+        </div>
+
+        <p class="mt-2 mb-1">
+          {{ review.comment }}
+        </p>
+
+        <small class="text-muted">
+          {{ review.created_at|date:"d M Y" }}
+        </small>
+
+      </div>
+
+      {% endfor %}
+
+    {% else %}
+
+      <p class="text-muted">No reviews yet.</p>
+
+    {% endif %}
+
+  </div>
+
+</div>
 
 <!-- AJAX CART -->
 
 <script>
-
 document.addEventListener("DOMContentLoaded", function(){
 
   document.querySelectorAll(".add-cart-btn").forEach(btn => {
@@ -66,13 +137,10 @@ document.addEventListener("DOMContentLoaded", function(){
       let productId = this.dataset.id;
 
       fetch(`/cart/add/${productId}/`)
-
       .then(res => res.json())
-
       .then(data => {
 
         if(data.status === "login_required"){
-          alert("Please login first");
           window.location.href = "/login/";
         }
 
@@ -87,38 +155,6 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
 });
-
 </script>
-
-<h3>Customer Reviews</h3>
-
-{% if reviews %}
-    {% for r in reviews %}
-        <p>
-            ⭐ {{ r.rating }}/5 <br>
-            {{ r.review }} <br>
-            - {{ r.user.username }}
-        </p>
-        <hr>
-    {% endfor %}
-{% else %}
-    <p>No reviews yet.</p>
-{% endif %}
-{% if has_ordered %}
-    <h4>Write a Review</h4>
-
-    <form method="POST" action="{% url 'add_review' product.id %}">
-        {% csrf_token %}
-
-        <input type="number" name="rating" min="1" max="5" required><br><br>
-
-        <textarea name="review" required></textarea><br><br>
-
-        <button type="submit">Submit</button>
-    </form>
-
-{% else %}
-    
-{% endif %}
 
 {% endblock %}
