@@ -2,16 +2,99 @@
 
 {% block content %}
 
-<h3>My Profile</h3>
-<hr>
+<div class="container mt-4">
 
-<p><b>Username:</b> {{ user.username }}</p>
-<p><b>Email:</b> {{ user.email }}</p>
-<p><b>Date Joined:</b> {{ user.date_joined }}</p>
+  <h3 class="mb-4 fw-bold">👤 My Profile</h3>
 
-<a href="{% url 'password_reset' %}"
-   class="btn btn-warning">
-  Change Password
-</a>
+  <div class="row">
+
+    <!-- LEFT PANEL -->
+    <div class="col-md-4">
+
+      <!-- USER CARD -->
+      <div class="card shadow-sm border-0 p-3 mb-3">
+        <h5 class="fw-bold mb-1">{{ user.username }}</h5>
+        <p class="text-muted small mb-0">{{ user.email }}</p>
+      </div>
+
+      <!-- QUICK LINKS -->
+      <div class="card shadow-sm border-0 p-3">
+
+        <a href="{% url 'my_orders' %}"
+           class="btn btn-outline-primary w-100 mb-2">
+          📦 My Orders
+        </a>
+
+        <a href="/wishlist/"
+           class="btn btn-outline-danger w-100">
+          ❤️ Wishlist
+        </a>
+
+      </div>
+
+      <!-- CHANGE PASSWORD -->
+      <a href="{% url 'password_reset' %}"
+         class="btn btn-warning w-100 mt-3">
+         🔐 Change Password
+      </a>
+
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="col-md-8">
+
+      <div class="card shadow-sm border-0 p-3">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0 fw-bold">Delivery Addresses</h5>
+
+          <a href="{% url 'accounts:add_address' %}"
+             class="btn btn-primary btn-sm">
+            + Add Address
+          </a>
+        </div>
+
+        {% for addr in addresses %}
+          <div class="border rounded p-3 mb-3 position-relative">
+
+            <strong>{{ addr.full_name }}</strong>
+            ({{ addr.phone }})<br>
+
+            {{ addr.address_line }}, {{ addr.city }}<br>
+            {{ addr.state }} - {{ addr.pincode }}
+
+            {% if addr.is_default %}
+              <span class="badge bg-success ms-2">Default</span>
+            {% endif %}
+
+            <!-- Buttons -->
+            <div class="mt-2">
+
+              <a href="{% url 'accounts:edit_address' addr.id %}"
+                 class="btn btn-sm btn-outline-primary">
+                 ✏ Edit
+              </a>
+
+              <a href="{% url 'accounts:delete_address' addr.id %}"
+                 class="btn btn-sm btn-outline-danger"
+                 onclick="return confirm('Delete this address?')">
+                 🗑 Delete
+              </a>
+
+            </div>
+
+          </div>
+
+        {% empty %}
+          <p class="text-muted">No address saved.</p>
+        {% endfor %}
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
 
 {% endblock %}

@@ -86,3 +86,97 @@
     border-radius: 30px;
     padding: 10px 24px;
 }
+
+/* heart position */
+.wishlist-icon{
+    position:absolute;
+    top:10px;
+    right:12px;
+    z-index:9999;   /* ⭐ MOST IMPORTANT */
+    cursor:pointer;
+}
+
+.product-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    transition: 0.3s;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+}
+
+/* ❤️ heart circle */
+.wishlist-icon {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.wishlist-icon i{
+    pointer-events:auto;
+    cursor:pointer;
+}
+
+.wishlist-icon:hover {
+    transform: scale(1.1);
+}
+
+.wishlist-icon i.active {
+    color: #ff3b5c;
+}
+
+/* Toast popup */
+#toast-box{
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast-msg{
+    background: #198754;
+    color: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+    animation: slideIn 0.4s ease;
+}
+
+@keyframes slideIn{
+    from{ transform: translateX(100%); opacity:0;}
+    to{ transform: translateX(0); opacity:1;}
+}
+
+.wishlist-icon i.active{
+    color:#ff3b5c;
+    animation: heartBeat 0.4s ease;
+}
+
+@keyframes heartBeat{
+    0%{ transform: scale(1);}
+    50%{ transform: scale(1.4);}
+    100%{ transform: scale(1);}
+}
+
+.card-img-top{
+    transition: 0.4s ease;
+}
+
+.product-card:hover .card-img-top{
+    transform: scale(1.08);
+}
+

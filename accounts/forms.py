@@ -1,5 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
+from .models import Address
 
 
 class SignupForm(forms.Form):
@@ -73,3 +74,17 @@ class SignupForm(forms.Form):
             raise forms.ValidationError("Passwords do not match")
 
         return cleaned_data
+
+class AddressForm(forms.ModelForm):
+    class Meta:
+        model = Address
+        fields = [
+            'full_name',
+            'phone',
+            'pincode',
+            'city',
+            'state',
+            'address_line',
+            'landmark',
+            'is_default'
+        ]

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+  <h4 class="mb-3">Add New Address</h4>
+
+  <form method="POST" class="card p-3 shadow-sm">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button class="btn btn-success mt-2">
+      Save Address
+    </button>
+
+  </form>
+
+</div>
+
+{% endblock %}

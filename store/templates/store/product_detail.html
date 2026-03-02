@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 {% load static %}
 
 {% block content %}
@@ -73,6 +74,61 @@
   </div>
 
   <!-- REVIEWS -->
+   <!-- ADD REVIEW FORM -->
+
+{% if user.is_authenticated and can_review %}
+
+  <div class="review-form-box mt-5">
+
+    <h5 class="mb-3">Write a Review</h5>
+
+    <form method="POST">
+      {% csrf_token %}
+
+      <div class="mb-2">
+        <label class="form-label">Rating</label>
+        <select name="rating" class="form-select" required>
+          <option value="">Select rating</option>
+          <option value="5">★★★★★ (5)</option>
+          <option value="4">★★★★ (4)</option>
+          <option value="3">★★★ (3)</option>
+          <option value="2">★★ (2)</option>
+          <option value="1">★ (1)</option>
+        </select>
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label">Review</label>
+        <textarea name="review"
+                  class="form-control"
+                  rows="3"
+                  placeholder="Write your experience..."
+                  required></textarea>
+      </div>
+
+      <button class="btn btn-success mt-2">
+        Submit Review
+      </button>
+
+    </form>
+
+  </div>
+  
+
+  {% elif user.is_authenticated %}
+
+  <p class="text-muted mt-4">
+    Only customers who purchased & received this product can review.
+  </p>
+
+  {% else %}
+
+  <p class="mt-4">
+    <a href="/login/">Login</a> to write a review.
+  </p>
+
+  {% endif %}
+
   <div class="reviews-section mt-5">
 
     <h4 class="mb-4">Customer Reviews</h4>
@@ -90,11 +146,11 @@
             <strong>{{ review.user.username }}</strong>
 
             {% if review.user.id in verified_users %}
-              <span class="verified-badge">
-                ✔ Verified Buyer
-              </span>
+                <span class="verified-badge">
+                    ✔ Verified Buyer
+                </span>
             {% endif %}
-
+              
           </div>
 
           <div class="rating-stars small">
@@ -120,6 +176,62 @@
       <p class="text-muted">No reviews yet.</p>
 
     {% endif %}
+
+    <!-- ⭐ Rating Breakdown -->
+
+    <div class="rating-breakdown mt-3">
+
+      <div class="d-flex align-items-center mb-1 small">
+        <div style="width:40px;">5 ★</div>
+        <div class="progress flex-grow-1 mx-2" style="height:8px;">
+          <div class="progress-bar bg-warning"
+              style="width: {{ rating_percent.5 }}%">
+          </div>
+        </div>
+        <div style="width:35px;">{{ rating_percent.5 }}%</div>
+      </div>
+
+      <div class="d-flex align-items-center mb-1 small">
+        <div style="width:40px;">4 ★</div>
+        <div class="progress flex-grow-1 mx-2" style="height:8px;">
+          <div class="progress-bar bg-warning"
+              style="width: {{ rating_percent.4 }}%">
+          </div>
+        </div>
+        <div style="width:35px;">{{ rating_percent.4 }}%</div>
+      </div>
+
+      <div class="d-flex align-items-center mb-1 small">
+        <div style="width:40px;">3 ★</div>
+        <div class="progress flex-grow-1 mx-2" style="height:8px;">
+          <div class="progress-bar bg-warning"
+              style="width: {{ rating_percent.3 }}%">
+          </div>
+        </div>
+        <div style="width:35px;">{{ rating_percent.3 }}%</div>
+      </div>
+
+      <div class="d-flex align-items-center mb-1 small">
+        <div style="width:40px;">2 ★</div>
+        <div class="progress flex-grow-1 mx-2" style="height:8px;">
+          <div class="progress-bar bg-warning"
+              style="width: {{ rating_percent.2 }}%">
+          </div>
+        </div>
+        <div style="width:35px;">{{ rating_percent.2 }}%</div>
+      </div>
+
+      <div class="d-flex align-items-center mb-1 small">
+        <div style="width:40px;">1 ★</div>
+        <div class="progress flex-grow-1 mx-2" style="height:8px;">
+          <div class="progress-bar bg-warning"
+              style="width: {{ rating_percent.1 }}%">
+          </div>
+        </div>
+        <div style="width:35px;">{{ rating_percent.1 }}%</div>
+      </div>
+
+    </div>
 
   </div>
 

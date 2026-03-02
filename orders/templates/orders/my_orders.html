@@ -2,49 +2,60 @@
 
 {% block content %}
 
-<h3>My Orders</h3>
+<h3 class="mb-3">📦 My Orders</h3>
 <hr>
 
 {% if orders %}
 
-{% for order in orders %}
+  {% for order in orders %}
 
-<div class="card mb-3">
+  <div class="card mb-4 shadow-sm">
 
-  <div class="card-body">
+    <div class="card-body">
 
-    <h5>Order #{{ order.id }}</h5>
+      <div class="d-flex justify-content-between align-items-center">
 
-    <p>
-      Date: {{ order.created_at|date:"d M Y" }} <br>
-      Status: <b>{{ order.status }}</b> <br>
-      Total: ₹ {{ order.total_amount }}
-    </p>
+        <h5 class="mb-0">Order #{{ order.id }}</h5>
 
-    <h6>Items:</h6>
+        <a href="{% url 'invoice' order.id %}" class="btn btn-sm btn-dark">
+          Download Invoice
+        </a>
 
-    <ul>
+      </div>
 
-    {% for item in order.orderitem_set.all %}
+      <hr>
 
-      <li>
-        {{ item.product.name }} 
-        (x{{ item.quantity }}) – ₹ {{ item.get_total }}
-      </li>
+      <p class="mb-2">
+        Date: {{ order.created_at|date:"d M Y" }} <br>
+        Status: <b>{{ order.status }}</b> <br>
+        Total: <b>₹ {{ order.total_amount }}</b>
+      </p>
 
-    {% endfor %}
+      <h6 class="mt-3">Items:</h6>
 
-    </ul>
+      <ul class="mb-0">
+
+        {% for item in order.orderitem_set.all %}
+          <li>
+            {{ item.product.name }}
+            (x{{ item.quantity }}) –
+            ₹ {{ item.get_total }}
+          </li>
+        {% empty %}
+          <li>No items found.</li>
+        {% endfor %}
+
+      </ul>
+
+    </div>
 
   </div>
 
-</div>
-
-{% endfor %}
+  {% endfor %}
 
 {% else %}
 
-<p>You have no orders yet.</p>
+  <p class="text-muted">You have no orders yet.</p>
 
 {% endif %}
 

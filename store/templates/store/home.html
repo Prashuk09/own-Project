@@ -37,11 +37,17 @@
 <div class="col-md-3 col-sm-6 mb-4">
 
   <div class="card h-100 shadow-sm border-0 product-card">
+    <div class="wishlist-icon">
+      <i class="fa fa-heart {% if product.id in wishlist_ids %}active{% endif %}"
+        data-id="{{ product.id }}"></i>
+    </div>
 
-    <img src="{{ product.image.url }}"
-         class="card-img-top p-3"
-         height="220"
-         style="object-fit:contain">
+    <a href="{% url 'product_detail' product.id %}">
+      <img src="{{ product.image.url }}"
+          class="card-img-top p-3 product-img"
+          height="220"
+          style="object-fit:contain;">
+    </a>
 
     <div class="card-body text-center">
 
@@ -102,7 +108,11 @@ document.addEventListener("DOMContentLoaded", function(){
 
         else if(data.status === "success"){
 
-          alert("Added to cart ✅");
+          let card = this.closest(".product-card");
+        let img = card.querySelector(".product-img");
+
+        flyToCart(img);
+        showToast("Added to cart 🛒");
 
         }
 
@@ -114,6 +124,65 @@ document.addEventListener("DOMContentLoaded", function(){
 
 });
 
+</script>
+<script>
+document.addEventListener("DOMContentLoaded", function(){
+
+  document.querySelectorAll(".wishlist-icon i").forEach(icon => {
+
+    icon.addEventListener("click", function(e){
+
+      e.preventDefault();
+
+      let id = this.dataset.id;
+
+      fetch(`/wishlist/${id}/`)
+      .then(res => res.json())
+      .then(data => {
+
+        if(data.status === "added"){
+          this.classList.add("active");
+        } else {
+          this.classList.remove("active");
+        }
+
+      });
+
+    });
+
+  });
+
+});
+</script>
+<script>
+function flyToCart(imgElement){
+
+    let cart = document.getElementById("cart-btn");
+    let img = imgElement.cloneNode(true);
+
+    let rect = imgElement.getBoundingClientRect();
+    let cartRect = cart.getBoundingClientRect();
+
+    img.style.position = "fixed";
+    img.style.zIndex = "1000";
+    img.style.left = rect.left + "px";
+    img.style.top = rect.top + "px";
+    img.style.width = imgElement.offsetWidth + "px";
+    img.style.transition = "all 0.8s ease-in-out";
+
+    document.body.appendChild(img);
+
+    setTimeout(()=>{
+        img.style.left = cartRect.left + "px";
+        img.style.top = cartRect.top + "px";
+        img.style.width = "40px";
+        img.style.opacity = "0.5";
+    },50);
+
+    setTimeout(()=>{
+        img.remove();
+    },800);
+}
 </script>
 {% endblock %}
 

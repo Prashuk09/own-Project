@@ -5,20 +5,18 @@
 <h3>Checkout</h3>
 <hr>
 
+<form method="POST">
+{% csrf_token %}
+
 <h5>Order Summary</h5>
 
 <ul class="list-group mb-3">
 
 {% for item in items %}
-
 <li class="list-group-item d-flex justify-content-between">
-
   {{ item.product.name }} (x{{ item.quantity }})
-
   <span>₹ {{ item.total_price }}</span>
-
 </li>
-
 {% endfor %}
 
 </ul>
@@ -27,25 +25,65 @@
 
 <hr>
 
-<h5>Delivery Details</h5>
+<h5 class="mb-3">Delivery Address</h5>
 
-<form method="post">
+<div class="card p-3 mb-3">
 
-{% csrf_token %}
+  {% if default_address %}
+    <strong>{{ default_address.full_name }}</strong>
+    ({{ default_address.phone }}) <br>
+    {{ default_address.address_line }},
+    {{ default_address.city }} <br>
+    {{ default_address.state }} - {{ default_address.pincode }}
 
-<input type="text" name="name"
-       class="form-control mb-2"
-       placeholder="Full Name" required>
+    <button type="button"
+            class="btn btn-sm btn-outline-primary ms-2"
+            data-bs-toggle="collapse"
+            data-bs-target="#changeAddress">
+      Change
+    </button>
 
-<input type="text" name="phone"
-       class="form-control mb-2"
-       placeholder="Phone Number" required>
+  {% else %}
+    <p>No address found</p>
+  {% endif %}
 
-<textarea name="address"
-          class="form-control mb-2"
-          placeholder="Full Address" required></textarea>
+</div>
 
-<button class="btn btn-primary w-100">
+<!-- CHANGE ADDRESS -->
+<div class="collapse" id="changeAddress">
+
+  {% for addr in addresses %}
+  <div class="form-check border rounded p-2 mb-2">
+
+    <input class="form-check-input"
+           type="radio"
+           name="address"
+           value="{{ addr.id }}"
+           {% if addr.is_default %}checked{% endif %}>
+
+    <label class="form-check-label">
+      <strong>{{ addr.full_name }}</strong>
+      ({{ addr.phone }})<br>
+      {{ addr.address_line }}, {{ addr.city }}<br>
+      {{ addr.state }} - {{ addr.pincode }}
+
+      {% if addr.is_default %}
+        <span class="badge bg-success">Default</span>
+      {% endif %}
+    </label>
+
+  </div>
+  {% endfor %}
+
+ <a href="{% url 'accounts:add_address' %}"
+   class="btn btn-outline-primary btn-sm mt-2">
+   + Add New Address
+ </a>
+
+</div>
+
+<!-- PLACE ORDER BUTTON -->
+<button class="btn btn-success btn-lg mt-4">
   Place Order
 </button>
 

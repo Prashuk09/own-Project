@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="container mt-4">
+<h3>My Wishlist ❤️</h3>
+
+{% for item in items %}
+  <div class="card p-3 mb-2">
+    <a href="/product/{{ item.product.id }}/">
+      {{ item.product.name }}
+    </a>
+  </div>
+{% empty %}
+  <p>No items in wishlist.</p>
+{% endfor %}
+
+</div>
+
+{% endblock %}
