@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Cart, CartItem, Order, OrderItem
+from .models import Cart, CartItem, Order, OrderItem, CancelRequest
 from store.models import Product
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
@@ -233,3 +233,49 @@ def download_invoice(request, order_id):
     doc.build(elements)
 
     return response
+
+# Order detail page
+@login_required
+def order_detail(request, id):
+
+    order = get_object_or_404(Order, id=id, user=request.user)
+    items = OrderItem.objects.filter(order=order)
+
+    return render(request, 'orders/order_detail.html', {
+        'order': order,
+        'items': items
+    })
+
+@login_required
+def cancel_order(request, id):
+
+    order = get_object_or_404(Order, id=id, user=request.user)
+
+    if order.status == "Pending":
+        order.status = "Cancelled"
+        order.save()
+
+    return redirect('order_detail', id=order.id)
+
+@login_required
+def cancel_request(request, id):
+
+    order = get_object_or_404(Order, id=id, user=request.user)
+
+    if order.status != "Pending":
+        return redirect('order_detail', id=order.id)
+
+    if request.method == "POST":
+        reason = request.POST.get("reason")
+
+        CancelRequest.objects.create(
+            order=order,
+            user=request.user,
+            reason=reason
+        )
+
+        return redirect('order_detail', id=order.id)
+
+    return render(request, "orders/cancel_request.html", {
+        "order": order
+    })

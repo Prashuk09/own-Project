@@ -15,7 +15,11 @@
 
       <div class="d-flex justify-content-between align-items-center">
 
-        <h5 class="mb-0">Order #{{ order.id }}</h5>
+        <h5>
+          <a href="{% url 'order_detail' order.id %}">
+            Order #{{ order.id }}
+          </a>
+        </h5>
 
         <a href="{% url 'invoice' order.id %}" class="btn btn-sm btn-dark">
           Download Invoice

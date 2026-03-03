@@ -45,6 +45,7 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
+    
 class OrderItem(models.Model):
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -55,3 +56,35 @@ class OrderItem(models.Model):
 
     def get_total(self):
         return self.price * self.quantity
+
+class CancelRequest(models.Model):
+
+    order = models.OneToOneField(
+        Order,
+        on_delete=models.CASCADE
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE
+    )
+
+    reason = models.TextField()
+
+    is_approved = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Cancel Request - Order {self.order.id}"
+
+    # 🔥 IMPORTANT FIXED SAVE METHOD
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        if self.is_approved:
+            self.order.status = "Cancelled"
+            self.order.save()
+    
+
+
