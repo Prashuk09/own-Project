@@ -101,7 +101,12 @@ def product_detail(request, id):
             }
         )
         return redirect('product_detail', id=id)
-        
+    
+    # ✅ RELATED PRODUCTS (same category)
+    related_products = Product.objects.filter(
+        Category=product.Category
+    ).exclude(id=product.id)[:4]
+    
     return render(request, 'store/product_detail.html', {
         'product': product,
         'reviews': reviews,
@@ -111,6 +116,7 @@ def product_detail(request, id):
         'avg_rating_int': avg_rating_int,
         'verified_users': verified_users,
         'rating_percent': rating_percent,
+        'related_products': related_products
     })
 
 
@@ -158,3 +164,4 @@ def toggle_wishlist(request, id):
 def wishlist(request):
     items = Wishlist.objects.filter(user=request.user)
     return render(request, 'store/wishlist.html', {'items': items})
+
