@@ -6,21 +6,40 @@
 
 <div class="container mt-5 product-wrapper">
 
-  <div class="row g-5 align-items-center">
+  <div class="row g-5 align-items-start">
 
-    <!-- PRODUCT IMAGE -->
+    <!-- PRODUCT IMAGE GALLERY -->
     <div class="col-md-5 text-center">
 
-      <div class="product-image-box">
+        <!-- MAIN IMAGE -->
+        <img id="mainImage"
+             src="{{ product.image.url }}"
+             class="img-fluid rounded mb-3"
+             style="max-height:350px; object-fit:contain;">
 
-        <img src="{{ product.image.url }}"
-             class="img-fluid">
+        <!-- THUMBNAILS -->
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
 
-      </div>
+            <!-- MAIN IMAGE THUMB -->
+            <img src="{{ product.image.url }}"
+                 class="thumb"
+                 onclick="changeImage(this)"
+                 style="width:70px;height:70px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid #ddd;">
+
+            <!-- GALLERY IMAGES -->
+            {% for img in product.gallery.all %}
+            <img src="{{ img.image.url }}"
+                 class="thumb"
+                 onclick="changeImage(this)"
+                 style="width:70px;height:70px;object-fit:cover;border-radius:6px;cursor:pointer;border:2px solid #ddd;">
+            {% endfor %}
+
+        </div>
 
     </div>
 
-    <!-- PRODUCT INFO -->
+
+    <!-- PRODUCT DETAILS -->
     <div class="col-md-7">
 
       <h2 class="product-title">
@@ -38,7 +57,7 @@
                 ☆
               {% endif %}
             {% endfor %}
-          </span>
+        </span>
 
         <span class="rating-text">
           {{ avg_rating }} / 5
@@ -73,8 +92,8 @@
 
   </div>
 
-  <!-- REVIEWS -->
-   <!-- ADD REVIEW FORM -->
+
+  <!-- ADD REVIEW FORM -->
 
 {% if user.is_authenticated and can_review %}
 
@@ -115,19 +134,23 @@
   </div>
   
 
-  {% elif user.is_authenticated %}
+{% elif user.is_authenticated %}
 
   <p class="text-muted mt-4">
     Only customers who purchased & received this product can review.
   </p>
 
-  {% else %}
+{% else %}
 
   <p class="mt-4">
     <a href="/login/">Login</a> to write a review.
   </p>
 
-  {% endif %}
+{% endif %}
+
+
+
+  <!-- REVIEWS -->
 
   <div class="reviews-section mt-5">
 
@@ -177,68 +200,46 @@
 
     {% endif %}
 
+
+
     <!-- ⭐ Rating Breakdown -->
 
     <div class="rating-breakdown mt-3">
 
+      {% for i in "54321" %}
       <div class="d-flex align-items-center mb-1 small">
-        <div style="width:40px;">5 ★</div>
-        <div class="progress flex-grow-1 mx-2" style="height:8px;">
-          <div class="progress-bar bg-warning"
-              style="width: {{ rating_percent.5 }}%">
-          </div>
-        </div>
-        <div style="width:35px;">{{ rating_percent.5 }}%</div>
-      </div>
 
-      <div class="d-flex align-items-center mb-1 small">
-        <div style="width:40px;">4 ★</div>
-        <div class="progress flex-grow-1 mx-2" style="height:8px;">
-          <div class="progress-bar bg-warning"
-              style="width: {{ rating_percent.4 }}%">
-          </div>
-        </div>
-        <div style="width:35px;">{{ rating_percent.4 }}%</div>
-      </div>
+        <div style="width:40px;">{{ i }} ★</div>
 
-      <div class="d-flex align-items-center mb-1 small">
-        <div style="width:40px;">3 ★</div>
         <div class="progress flex-grow-1 mx-2" style="height:8px;">
           <div class="progress-bar bg-warning"
-              style="width: {{ rating_percent.3 }}%">
+              style="width: {{ rating_percent|get_item:i }}%">
           </div>
         </div>
-        <div style="width:35px;">{{ rating_percent.3 }}%</div>
-      </div>
 
-      <div class="d-flex align-items-center mb-1 small">
-        <div style="width:40px;">2 ★</div>
-        <div class="progress flex-grow-1 mx-2" style="height:8px;">
-          <div class="progress-bar bg-warning"
-              style="width: {{ rating_percent.2 }}%">
-          </div>
+        <div style="width:35px;">
+          {{ rating_percent|get_item:i }}%
         </div>
-        <div style="width:35px;">{{ rating_percent.2 }}%</div>
-      </div>
 
-      <div class="d-flex align-items-center mb-1 small">
-        <div style="width:40px;">1 ★</div>
-        <div class="progress flex-grow-1 mx-2" style="height:8px;">
-          <div class="progress-bar bg-warning"
-              style="width: {{ rating_percent.1 }}%">
-          </div>
-        </div>
-        <div style="width:35px;">{{ rating_percent.1 }}%</div>
       </div>
+      {% endfor %}
 
     </div>
 
+
+
     <hr>
+
+    <!-- RELATED PRODUCTS -->
+
     <h4 class="mt-4 mb-3">Related Products</h4>
 
     <div class="row">
+
     {% for item in related_products %}
+
       <div class="col-md-3 mb-4">
+
         <div class="card h-100 shadow-sm border-0">
           
           <img src="{{ item.image.url }}" 
@@ -246,29 +247,52 @@
               style="height:180px; object-fit:cover;">
 
           <div class="card-body text-center">
+
             <h6 class="card-title">{{ item.name }}</h6>
-            <p class="text-muted small">₹ {{ item.price }}</p>
+
+            <p class="text-muted small">
+              ₹ {{ item.price }}
+            </p>
 
             <a href="{% url 'product_detail' item.id %}"
               class="btn btn-sm btn-dark w-100">
               View
             </a>
+
           </div>
 
         </div>
+
       </div>
+
     {% empty %}
+
       <p>No related products found.</p>
+
     {% endfor %}
+
     </div>
 
   </div>
 
 </div>
 
+
+
+<script>
+
+function changeImage(element){
+    document.getElementById("mainImage").src = element.src;
+}
+
+</script>
+
+
+
 <!-- AJAX CART -->
 
 <script>
+
 document.addEventListener("DOMContentLoaded", function(){
 
   document.querySelectorAll(".add-cart-btn").forEach(btn => {
@@ -296,6 +320,8 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
 });
+
 </script>
+
 
 {% endblock %}

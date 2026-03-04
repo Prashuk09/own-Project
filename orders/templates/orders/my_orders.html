@@ -39,15 +39,46 @@
 
       <ul class="mb-0">
 
-        {% for item in order.orderitem_set.all %}
-          <li>
-            {{ item.product.name }}
-            (x{{ item.quantity }}) –
-            ₹ {{ item.get_total }}
-          </li>
-        {% empty %}
-          <li>No items found.</li>
-        {% endfor %}
+       <div class="row align-items-center">
+
+      <!-- LEFT SIDE (ORDER DETAILS) -->
+      <div class="col-md-9">
+
+          <p>
+            Date: {{ order.created_at|date:"d M Y" }} <br>
+            Status: <b>{{ order.status }}</b> <br>
+            Total: ₹ {{ order.total_amount }}
+          </p>
+
+          <h6>Items:</h6>
+
+          <ul>
+          {% for item in order.orderitem_set.all %}
+              <li>
+                {{ item.product.name }} 
+                (x{{ item.quantity }}) – ₹ {{ item.get_total }}
+              </li>
+          {% endfor %}
+          </ul>
+
+      </div>
+
+
+      <!-- RIGHT SIDE (PRODUCT IMAGE) -->
+      <div class="col-md-3 text-end">
+
+          {% for item in order.orderitem_set.all|slice:":1" %}
+
+          <a href="{% url 'product_detail' item.product.id %}">
+              <img src="{{ item.product.image.url }}"
+                   style="max-width:180px; height:auto; border-radius:10px;">
+          </a>
+
+          {% endfor %}
+
+      </div>
+
+  </div>
 
       </ul>
 
