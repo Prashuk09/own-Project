@@ -92,7 +92,7 @@
     position:absolute;
     top:10px;
     right:12px;
-    z-index:9999;   /* ⭐ MOST IMPORTANT */
+    z-index:9999;
     cursor:pointer;
 }
 
@@ -180,3 +180,55 @@
     transform: scale(1.08);
 }
 
+
+/* =============================== */
+/* NEW BUTTON DESIGN (SAFE ADD) */
+/* =============================== */
+
+/* BUY NOW BUTTON */
+
+.buy-now-btn{
+    background:#ff9f00;
+    color:white;
+    border:none;
+    border-radius:30px;
+    font-weight:600;
+    padding:10px 24px;
+}
+
+.buy-now-btn:hover{
+    background:#fb8c00;
+}
+
+.add-cart-btn{
+    border-radius:30px;
+    font-weight:600;
+}
+
+/* PRODUCT IMAGE ZOOM */
+
+.zoom-container{
+    position: relative;
+    overflow: hidden;
+    border-radius: 12px;
+}
+
+.zoom-container img{
+    transition: transform 0.4s ease;
+}
+
+.zoom-container:hover img{
+    transform: scale(1.8);
+    cursor: zoom-in;
+}
+
+/* Thumbnail hover */
+
+.thumb{
+    transition: 0.3s;
+}
+
+.thumb:hover{
+    transform: scale(1.15);
+    border:2px solid #0d6efd;
+}

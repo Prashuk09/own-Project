@@ -67,11 +67,21 @@
         ₹ {{ product.price }}
       </h5>
 
+      <div class="d-flex gap-2 mt-3">
+
       <button
-        class="btn btn-primary w-100 mt-2 add-cart-btn"
+        class="btn buy-now-btn w-50 buy-now-btn-js"
+        data-id="{{ product.id }}">
+        Buy Now
+      </button>
+
+      <button
+        class="btn btn-primary w-50 add-cart-btn"
         data-id="{{ product.id }}">
         Add to Cart
       </button>
+
+    </div>
 
     </div>
 
@@ -184,5 +194,37 @@ function flyToCart(imgElement){
     },800);
 }
 </script>
+
+<script>
+document.querySelectorAll(".buy-now-btn-js").forEach(btn => {
+
+  btn.addEventListener("click", function(){
+
+    let productId = this.dataset.id;
+
+    fetch(`/cart/add/${productId}/`)
+    .then(res => res.json())
+    .then(data => {
+
+      if(data.status === "login_required"){
+
+        alert("Please login first 🔐");
+        window.location.href = "/login/";
+
+      }
+
+      else if(data.status === "success"){
+
+        window.location.href = "/cart/checkout/";
+
+      }
+
+    });
+
+  });
+
+});
+</script>
+
 {% endblock %}
 

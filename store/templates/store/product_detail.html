@@ -12,10 +12,12 @@
     <div class="col-md-5 text-center">
 
         <!-- MAIN IMAGE -->
-        <img id="mainImage"
-             src="{{ product.image.url }}"
-             class="img-fluid rounded mb-3"
-             style="max-height:350px; object-fit:contain;">
+        <div class="zoom-container mb-3">
+          <img id="mainImage"
+              src="{{ product.image.url }}"
+              class="img-fluid rounded"
+              style="max-height:350px; object-fit:contain;">
+          </div>
 
         <!-- THUMBNAILS -->
         <div class="d-flex justify-content-center gap-2 flex-wrap">
@@ -76,15 +78,25 @@
 
       <div class="mt-4">
 
-        <button
-          class="btn btn-primary btn-lg add-cart-btn me-2"
-          data-id="{{ product.id }}">
-          🛒 Add to Cart
-        </button>
+        <div class="d-flex gap-3 mt-4">
 
-        <a href="/" class="btn btn-outline-secondary btn-lg">
-          ← Continue Shopping
-        </a>
+          <button
+            class="btn buy-now-btn btn-lg buy-now-btn-js"
+            data-id="{{ product.id }}">
+            ⚡ Buy Now
+          </button>
+
+          <button
+            class="btn btn-primary btn-lg add-cart-btn"
+            data-id="{{ product.id }}">
+            🛒 Add to Cart
+          </button>
+
+          <a href="/" class="btn btn-outline-secondary btn-lg">
+            ← Continue Shopping
+          </a>
+
+        </div>
 
       </div>
 
@@ -323,5 +335,35 @@ document.addEventListener("DOMContentLoaded", function(){
 
 </script>
 
+<!-- BUY NOW SCRIPT -->
+<script>
+document.querySelectorAll(".buy-now-btn-js").forEach(btn => {
 
+  btn.addEventListener("click", function(){
+
+    let productId = this.dataset.id;
+
+    fetch(`/cart/add/${productId}/`)
+    .then(res => res.json())
+    .then(data => {
+
+      if(data.status === "login_required"){
+
+        alert("Please login first 🔐");
+        window.location.href = "/login/";
+
+      }
+
+      else if(data.status === "success"){
+
+        window.location.href = "/cart/checkout/";
+
+      }
+
+    });
+
+  });
+
+});
+</script>
 {% endblock %}

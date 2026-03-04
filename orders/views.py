@@ -1,28 +1,29 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cart, CartItem, Order, OrderItem, CancelRequest
+from accounts.models import Address
 from store.models import Product
+
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import TableStyle
-from reportlab.lib import colors
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.lib import colors
+
+
+# ---------------- CART ---------------- #
 
 def get_cart(request):
-    cart, created = Cart.objects.get_or_create(
-        user=request.user
-    )
+    cart, created = Cart.objects.get_or_create(user=request.user)
     return cart
 
 
 def add_to_cart(request, product_id):
 
     if not request.user.is_authenticated:
-        return JsonResponse({
-            'status': 'login_required'
-        })
+        return JsonResponse({'status': 'login_required'})
 
     product = get_object_or_404(Product, id=product_id)
 
@@ -42,6 +43,7 @@ def add_to_cart(request, product_id):
         'status': 'success',
         'qty': item.quantity
     })
+
 
 @require_POST
 def increase_qty(request, item_id):
@@ -81,9 +83,8 @@ def remove_item(request, item_id):
 
     item.delete()
 
-    return JsonResponse({
-        "status": "removed"
-    })
+    return JsonResponse({"status": "removed"})
+
 
 def view_cart(request):
 
@@ -101,12 +102,13 @@ def view_cart(request):
         'total': total
     })
 
-from accounts.models import Address
+
+# ---------------- CHECKOUT ---------------- #
 
 @login_required
 def checkout(request):
 
-    cart = Cart.objects.get(user=request.user)
+    cart = get_cart(request)
     items = cart.cartitem_set.all()
 
     if not items:
@@ -115,22 +117,26 @@ def checkout(request):
     addresses = Address.objects.filter(user=request.user)
     default_address = addresses.filter(is_default=True).first()
 
-    # ✅ calculate total
     total = sum(item.product.price * item.quantity for item in items)
+
+    # ❗ address required
+    if not addresses.exists():
+        messages.error(request, "Please add a delivery address first.")
+        return redirect("accounts:add_address")
 
     if request.method == "POST":
 
         address_id = request.POST.get('address')
 
         if address_id:
-            selected_address = Address.objects.get(id=address_id, user=request.user)
+            selected_address = get_object_or_404(Address, id=address_id, user=request.user)
         else:
-            selected_address = default_address
+            selected_address = default_address or addresses.first()
 
         order = Order.objects.create(
-            user=request.user,   # ✅ FIXED
+            user=request.user,
             address=selected_address,
-            total_amount=total   # ✅ FIXED
+            total_amount=total
         )
 
         for item in items:
@@ -151,21 +157,88 @@ def checkout(request):
         'addresses': addresses,
         'total': total
     })
+
+
+# ---------------- ORDERS ---------------- #
+
+@login_required
 def my_orders(request):
-    if not request.user.is_authenticated:
-        return redirect('login')
-    
+
     orders = Order.objects.filter(
-        user = request.user
+        user=request.user
     ).order_by('-created_at')
-    
-    return render(request, 'orders/my_orders.html',{
-        'orders':orders
+
+    return render(request, 'orders/my_orders.html', {
+        'orders': orders
     })
+
+
+@login_required
+def order_detail(request, id):
+
+    order = get_object_or_404(Order, id=id, user=request.user)
+
+    cancel_request = CancelRequest.objects.filter(order=order).first()
+
+    items = OrderItem.objects.filter(order=order)
+
+    return render(request, "orders/order_detail.html", {
+        "order": order,
+        "items": items,
+        "cancel_request": cancel_request
+    })
+
+
+# ---------------- CANCEL REQUEST ---------------- #
+
+@login_required
+def cancel_request(request, id):
+
+    order = get_object_or_404(Order, id=id, user=request.user)
+
+    if CancelRequest.objects.filter(order=order).exists():
+        messages.warning(request, "Cancellation already requested.")
+        return redirect('order_detail', id=order.id)
+
+    if request.method == "POST":
+
+        reason = request.POST.get("reason")
+
+        CancelRequest.objects.create(
+            order=order,
+            user=request.user,
+            reason=reason
+        )
+
+        messages.success(request, "Cancellation request submitted.")
+
+        return redirect('order_detail', id=order.id)
+
+    return render(request, "orders/cancel_request.html", {
+        "order": order
+    })
+
+
+# ---------------- DIRECT CANCEL ---------------- #
+
+@login_required
+def cancel_order(request, id):
+
+    order = get_object_or_404(Order, id=id, user=request.user)
+
+    order.status = "Cancelled"
+    order.save()
+
+    messages.success(request, "Order cancelled successfully.")
+
+    return redirect('order_detail', id=order.id)
+
+
+# ---------------- INVOICE ---------------- #
 
 def download_invoice(request, order_id):
 
-    order = Order.objects.get(id=order_id)
+    order = get_object_or_404(Order, id=order_id)
     items = OrderItem.objects.filter(order=order)
 
     response = HttpResponse(content_type='application/pdf')
@@ -175,12 +248,10 @@ def download_invoice(request, order_id):
     styles = getSampleStyleSheet()
     elements = []
 
-    # 🧾 Title
     elements.append(Paragraph(f"Invoice #{order.id}", styles['Heading1']))
     elements.append(Spacer(1, 20))
 
-    # ✅ Customer Info
-    address = order.address   # FK Address object
+    address = order.address
 
     elements.append(Paragraph(f"Customer: {order.user}", styles['Normal']))
 
@@ -196,7 +267,6 @@ def download_invoice(request, order_id):
 
     elements.append(Spacer(1, 20))
 
-    # 🛒 Table data
     data = [['Product', 'Qty', 'Price']]
 
     for item in items:
@@ -220,62 +290,14 @@ def download_invoice(request, order_id):
     elements.append(table)
     elements.append(Spacer(1, 25))
 
-    # 🏢 Company Info
     elements.append(Paragraph("PJKART Pvt Ltd", styles['Heading2']))
     elements.append(Paragraph("Bharuch, Gujarat", styles['Normal']))
     elements.append(Paragraph("Phone: +91 XXXXX XXXXX", styles['Normal']))
 
     elements.append(Spacer(1, 25))
 
-    # 💰 Total
     elements.append(Paragraph(f"Total Amount: ₹ {order.total_amount}", styles['Heading2']))
 
     doc.build(elements)
 
     return response
-
-# Order detail page
-@login_required
-def order_detail(request, id):
-
-    order = get_object_or_404(Order, id=id, user=request.user)
-    items = OrderItem.objects.filter(order=order)
-
-    return render(request, 'orders/order_detail.html', {
-        'order': order,
-        'items': items
-    })
-
-@login_required
-def cancel_order(request, id):
-
-    order = get_object_or_404(Order, id=id, user=request.user)
-
-    if order.status == "Pending":
-        order.status = "Cancelled"
-        order.save()
-
-    return redirect('order_detail', id=order.id)
-
-@login_required
-def cancel_request(request, id):
-
-    order = get_object_or_404(Order, id=id, user=request.user)
-
-    if order.status != "Pending":
-        return redirect('order_detail', id=order.id)
-
-    if request.method == "POST":
-        reason = request.POST.get("reason")
-
-        CancelRequest.objects.create(
-            order=order,
-            user=request.user,
-            reason=reason
-        )
-
-        return redirect('order_detail', id=order.id)
-
-    return render(request, "orders/cancel_request.html", {
-        "order": order
-    })
