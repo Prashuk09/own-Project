@@ -34,21 +34,47 @@ def add_to_cart(request, product_id):
         product=product
     )
 
-    if not created:
+    # OUT OF STOCK
+    if product.stock == 0:
+        return JsonResponse({
+            "status": "out_of_stock"
+        })
+
+    # FIRST TIME ADD
+    if created:
+        item.quantity = 1
+
+    else:
+
+        # MAX STOCK REACHED
+        if item.quantity >= product.stock:
+
+            return JsonResponse({
+                "status": "max_stock",
+                "stock": product.stock
+            })
+
         item.quantity += 1
 
     item.save()
 
     return JsonResponse({
-        'status': 'success',
-        'qty': item.quantity
+        "status": "success",
+        "qty": item.quantity
     })
-
 
 @require_POST
 def increase_qty(request, item_id):
 
     item = get_object_or_404(CartItem, id=item_id)
+    product = item.product
+
+    # STOCK LIMIT
+    if item.quantity >= product.stock:
+        return JsonResponse({
+            "status": "max_stock",
+            "stock": product.stock
+        })
 
     item.quantity += 1
     item.save()
@@ -140,17 +166,40 @@ def checkout(request):
         )
 
         for item in items:
+
+            product = item.product
+
+            # check stock
+            if item.quantity > product.stock:
+                messages.error(request, f"{product.name} is out of stock.")
+                return redirect("view_cart")
+
+        # ORDER CREATE
+        order = Order.objects.create(
+            user=request.user,
+            address=selected_address,
+            total_amount=total
+        )
+
+        # CREATE ORDER ITEMS + REDUCE STOCK
+        for item in items:
+
+            product = item.product
+
             OrderItem.objects.create(
                 order=order,
-                product=item.product,
+                product=product,
                 quantity=item.quantity,
-                price=item.product.price
+                price=product.price
             )
 
+            # reduce stock AFTER order
+            product.stock -= item.quantity
+            product.save()
+
+        # clear cart
         items.delete()
-
         return redirect('my_orders')
-
     return render(request, 'orders/checkout.html', {
         'items': items,
         'default_address': default_address,

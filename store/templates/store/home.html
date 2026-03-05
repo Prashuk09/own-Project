@@ -49,6 +49,12 @@
           style="object-fit:contain;">
     </a>
 
+    {% if product.stock == 0 %}
+    <p class="text-danger fw-bold small mb-1">
+      Out of Stock
+    </p>
+    {% endif %}
+
     <div class="card-body text-center">
 
       <h6 class="fw-bold">
@@ -69,17 +75,31 @@
 
       <div class="d-flex gap-2 mt-3">
 
-      <button
-        class="btn buy-now-btn w-50 buy-now-btn-js"
-        data-id="{{ product.id }}">
-        Buy Now
-      </button>
+      {% if product.stock > 0 %}
 
-      <button
-        class="btn btn-primary w-50 add-cart-btn"
-        data-id="{{ product.id }}">
-        Add to Cart
-      </button>
+<div class="d-flex gap-2 mt-2">
+
+  <button
+    class="btn buy-now-btn w-50 buy-now-btn-js"
+    data-id="{{ product.id }}">
+    Buy Now
+  </button>
+
+  <button
+    class="btn btn-primary w-50 add-cart-btn"
+    data-id="{{ product.id }}">
+    Add to Cart
+  </button>
+
+</div>
+
+{% else %}
+
+<button class="btn btn-secondary w-100 mt-2" disabled>
+  Out of Stock
+</button>
+
+{% endif %}
 
     </div>
 
@@ -111,18 +131,32 @@ document.addEventListener("DOMContentLoaded", function(){
         if(data.status === "login_required"){
 
           alert("Please login first 🔐");
-
           window.location.href = "/login/";
+
+        }
+
+        else if(data.status === "out_of_stock"){
+
+          showToast("Out of stock ❌");
 
         }
 
         else if(data.status === "success"){
 
           let card = this.closest(".product-card");
-        let img = card.querySelector(".product-img");
+          let img = card.querySelector(".product-img");
 
-        flyToCart(img);
-        showToast("Added to cart 🛒");
+          flyToCart(img);
+          showToast("Added to cart 🛒");
+
+          // 🛒 UPDATE CART BADGE
+          let badge = document.getElementById("cart-count");
+
+          let current = parseInt(badge.innerText) || 0;
+
+          badge.innerText = current + 1;
+
+          badge.style.display = "inline-block";
 
         }
 
@@ -214,6 +248,15 @@ document.querySelectorAll(".buy-now-btn-js").forEach(btn => {
       }
 
       else if(data.status === "success"){
+
+        // 🛒 update cart badge
+        let badge = document.getElementById("cart-count");
+
+        let current = parseInt(badge.innerText) || 0;
+
+        badge.innerText = current + 1;
+
+        badge.style.display = "inline-block";
 
         window.location.href = "/cart/checkout/";
 

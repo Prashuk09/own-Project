@@ -27,12 +27,14 @@
 
   <td>
 
-    <button class="btn btn-sm btn-outline-secondary dec-btn"
-            data-id="{{ item.id }}">−</button>
+    <button class="btn btn-outline-secondary decrease"
+        data-id="{{ item.id }}">-</button>
 
-    <span id="qty-{{ item.id }}">{{ item.quantity }}</span>
+    <span id="qty-{{ item.id }}" class="mx-2">
+        {{ item.quantity }}
+    </span>
 
-    <button class="btn btn-sm btn-outline-secondary inc-btn"
+    <button class="btn btn-outline-secondary increase"
             data-id="{{ item.id }}">+</button>
 
   </td>
@@ -91,60 +93,69 @@
 document.addEventListener("DOMContentLoaded", function(){
 
   // Increase
-  document.querySelectorAll(".inc-btn").forEach(btn => {
+  document.querySelectorAll(".increase").forEach(btn => {
 
-    btn.addEventListener("click", function(){
+  btn.addEventListener("click", function(){
 
-      let id = this.dataset.id;
+      let itemId = this.dataset.id
 
-      fetch(`/cart/inc/${id}/`, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": "{{ csrf_token }}"
-        }
+      fetch(`/cart/inc/${itemId}/`,{
+          method:"POST",
+          headers:{
+              "X-CSRFToken":"{{ csrf_token }}"
+          }
       })
 
-      .then(res => res.json())
-      .then(data => {
+      .then(res=>res.json())
+      .then(data=>{
 
-        document.getElementById(`qty-${id}`).innerText = data.qty;
-        document.getElementById(`total-${id}`).innerText = data.total;
+          if(data.status === "success"){
 
-        location.reload(); // simple refresh for total
-      });
+              document.getElementById(`qty-${itemId}`).innerText = data.qty
+              location.reload()
 
-    });
+          }
 
-  });
+          else if(data.status === "max_stock"){
+
+              alert("Maximum quantity reached. Only "+data.stock+" items available.")
+
+          }
+
+      })
+
+  })
+  })
 
 
   // Decrease
-  document.querySelectorAll(".dec-btn").forEach(btn => {
+  document.querySelectorAll(".decrease").forEach(btn => {
 
-    btn.addEventListener("click", function(){
+  btn.addEventListener("click", function(){
 
-      let id = this.dataset.id;
+      let itemId = this.dataset.id
 
-      fetch(`/cart/dec/${id}/`, {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": "{{ csrf_token }}"
-        }
+      fetch(`/cart/dec/${itemId}/`,{
+          method:"POST",
+          headers:{
+              "X-CSRFToken":"{{ csrf_token }}"
+          }
       })
 
-      .then(res => res.json())
-      .then(data => {
+      .then(res=>res.json())
+      .then(data=>{
 
-        document.getElementById(`qty-${id}`).innerText = data.qty;
-        document.getElementById(`total-${id}`).innerText = data.total;
+          if(data.status === "success"){
 
-        location.reload();
-      });
+              document.getElementById(`qty-${itemId}`).innerText = data.qty
+              location.reload()
 
-    });
+          }
 
-  });
+      })
 
+  })
+  })
 
   // Remove
   document.querySelectorAll(".remove-btn").forEach(btn => {
