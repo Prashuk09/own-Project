@@ -145,7 +145,7 @@ def checkout(request):
 
     total = sum(item.product.price * item.quantity for item in items)
 
-    # ❗ address required
+    # address required
     if not addresses.exists():
         messages.error(request, "Please add a delivery address first.")
         return redirect("accounts:add_address")
@@ -159,17 +159,9 @@ def checkout(request):
         else:
             selected_address = default_address or addresses.first()
 
-        order = Order.objects.create(
-            user=request.user,
-            address=selected_address,
-            total_amount=total
-        )
-
+        # STOCK CHECK FIRST
         for item in items:
-
             product = item.product
-
-            # check stock
             if item.quantity > product.stock:
                 messages.error(request, f"{product.name} is out of stock.")
                 return redirect("view_cart")
@@ -199,28 +191,15 @@ def checkout(request):
 
         # clear cart
         items.delete()
+
         return redirect('my_orders')
+
     return render(request, 'orders/checkout.html', {
         'items': items,
         'default_address': default_address,
         'addresses': addresses,
         'total': total
     })
-
-
-# ---------------- ORDERS ---------------- #
-
-@login_required
-def my_orders(request):
-
-    orders = Order.objects.filter(
-        user=request.user
-    ).order_by('-created_at')
-
-    return render(request, 'orders/my_orders.html', {
-        'orders': orders
-    })
-
 
 @login_required
 def order_detail(request, id):
@@ -350,3 +329,46 @@ def download_invoice(request, order_id):
     doc.build(elements)
 
     return response
+
+# BUY NOW VIEW
+@login_required
+def buy_now(request, product_id):
+
+    product = get_object_or_404(Product, id=product_id)
+
+    if product.stock < 1:
+        messages.error(request, "Product out of stock")
+        return redirect("product_detail", product_id)
+
+    addresses = Address.objects.filter(user=request.user)
+    default_address = addresses.filter(is_default=True).first()
+
+    items = [{
+        "product": product,
+        "quantity": 1,
+        "total_price": product.price
+    }]
+
+    total = product.price
+
+    return render(request, "orders/checkout.html", {
+        "items": items,
+        "buy_now": True,
+        "product": product,
+        "total": total,
+        "addresses": addresses,
+        "default_address": default_address
+    })
+
+# ---------------- ORDERS ---------------- #
+
+@login_required
+def my_orders(request):
+
+    orders = Order.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
+
+    return render(request, 'orders/my_orders.html', {
+        'orders': orders
+    })

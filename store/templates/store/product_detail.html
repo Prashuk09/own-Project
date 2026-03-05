@@ -109,15 +109,18 @@
 
         <div class="d-flex gap-3 mt-4">
           {% if product.stock > 0 %}
+          
           <button
             class="btn buy-now-btn btn-lg buy-now-btn-js"
-            data-id="{{ product.id }}">
+            data-id="{{ product.id }}"
+            type="button">
             ⚡ Buy Now
           </button>
 
           <button
             class="btn btn-primary btn-lg add-cart-btn"
-            data-id="{{ product.id }}">
+            data-id="{{ product.id }}"
+            type="button">
             🛒 Add to Cart
           </button>
 
@@ -351,30 +354,47 @@ document.addEventListener("DOMContentLoaded", function(){
       let productId = this.dataset.id;
 
       fetch(`/cart/add/${productId}/`)
+
       .then(res => res.json())
+
       .then(data => {
 
         if(data.status === "login_required"){
 
-            window.location.href = "/login/";
-
-        }
-
-        else if(data.status === "success"){
-
-            alert("Added to cart ✅");
-
-        }
-
-        else if(data.status === "max_stock"){
-
-            alert("You have selected maximum quantity available in stock");
+          alert("Please login first 🔐");
+          window.location.href = "/login/";
 
         }
 
         else if(data.status === "out_of_stock"){
 
-            alert("Product is out of stock");
+          showToast("Out of stock ❌");
+
+        }
+
+        else if(data.status === "max_stock"){
+
+          showToast("You have selected maximum quantity available in stock");
+
+        }
+
+        else if(data.status === "success"){
+
+          let cartCount = document.getElementById("cart-count");
+
+          if(cartCount){
+              cartCount.innerText = parseInt(cartCount.innerText) + 1;
+              cartCount.style.display = "inline-block";
+          }
+
+          let card = this.closest(".product-card");
+
+          if(card){
+            let img = card.querySelector(".product-img");
+            if(img) flyToCart(img);
+          }
+
+          showToast("Added to cart 🛒");
 
         }
 
@@ -385,7 +405,6 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
 });
-
 </script>
 
 <!-- BUY NOW SCRIPT -->
@@ -409,19 +428,14 @@ document.querySelectorAll(".buy-now-btn-js").forEach(btn => {
 
       else if(data.status === "success"){
 
-        window.location.href = "/cart/checkout/";
+        let cartCount = document.getElementById("cart-count");
 
-      }
+        if(cartCount){
+            cartCount.innerText = parseInt(cartCount.innerText) + 1;
+            cartCount.style.display = "inline-block";
+        }
 
-      else if(data.status === "max_stock"){
-
-        alert("You have selected maximum quantity available in stock");
-
-      }
-
-      else if(data.status === "out_of_stock"){
-
-        alert("Product is out of stock");
+        window.location.href = `/cart/buy-now/${productId}/`;
 
       }
 
@@ -478,4 +492,8 @@ function nextImage(){
 
 }
 </script>
+
+<script>
+
+
 {% endblock %}

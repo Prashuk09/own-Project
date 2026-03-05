@@ -12,18 +12,14 @@
 
       <a href="/"
          class="list-group-item list-group-item-action fw-bold">
-
         All Products
-
       </a>
 
       {% for cat in categories %}
 
       <a href="/?cat={{ cat.id }}"
          class="list-group-item list-group-item-action">
-
         {{ cat.name }}
-
       </a>
 
       {% endfor %}
@@ -37,6 +33,7 @@
 <div class="col-md-3 col-sm-6 mb-4">
 
   <div class="card h-100 shadow-sm border-0 product-card">
+
     <div class="wishlist-icon">
       <i class="fa fa-heart {% if product.id in wishlist_ids %}active{% endif %}"
         data-id="{{ product.id }}"></i>
@@ -64,7 +61,6 @@
         </a>
       </h6>
 
-
       <p class="text-muted small">
         {{ product.description|truncatewords:10 }}
       </p>
@@ -73,17 +69,19 @@
         ₹ {{ product.price }}
       </h5>
 
-      <div class="d-flex gap-2 mt-3">
-
-      {% if product.stock > 0 %}
+{% if product.stock > 0 %}
 
 <div class="d-flex gap-2 mt-2">
 
+  <!-- BUY NOW -->
   <button
-    class="btn buy-now-btn w-50 buy-now-btn-js"
-    data-id="{{ product.id }}">
-    Buy Now
+    class="btn buy-now-btn btn-lg buy-now-btn-js"
+    data-id="{{ product.id }}"
+    type="button">
+     Buy Now
   </button>
+
+  <!-- ADD TO CART -->
 
   <button
     class="btn btn-primary w-50 add-cart-btn"
@@ -103,8 +101,6 @@
 
     </div>
 
-    </div>
-
   </div>
 
 </div>
@@ -112,6 +108,10 @@
 {% endfor %}
 
 </div>
+
+
+<!-- ADD TO CART SCRIPT -->
+
 <script>
 
 document.addEventListener("DOMContentLoaded", function(){
@@ -141,22 +141,29 @@ document.addEventListener("DOMContentLoaded", function(){
 
         }
 
+        else if(data.status === "max_stock"){
+
+          showToast("You have selected maximum quantity available in stock");
+
+        }
+
         else if(data.status === "success"){
 
+          let cartCount = document.getElementById("cart-count");
+
+          if(cartCount){
+              cartCount.innerText = parseInt(cartCount.innerText) + 1;
+              cartCount.style.display = "inline-block";
+          }
+
           let card = this.closest(".product-card");
-          let img = card.querySelector(".product-img");
 
-          flyToCart(img);
+          if(card){
+            let img = card.querySelector(".product-img");
+            if(img) flyToCart(img);
+          }
+
           showToast("Added to cart 🛒");
-
-          // 🛒 UPDATE CART BADGE
-          let badge = document.getElementById("cart-count");
-
-          let current = parseInt(badge.innerText) || 0;
-
-          badge.innerText = current + 1;
-
-          badge.style.display = "inline-block";
 
         }
 
@@ -169,7 +176,12 @@ document.addEventListener("DOMContentLoaded", function(){
 });
 
 </script>
+
+
+<!-- WISHLIST -->
+
 <script>
+
 document.addEventListener("DOMContentLoaded", function(){
 
   document.querySelectorAll(".wishlist-icon i").forEach(icon => {
@@ -197,8 +209,14 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
 });
+
 </script>
+
+
+<!-- FLY TO CART -->
+
 <script>
+
 function flyToCart(imgElement){
 
     let cart = document.getElementById("cart-btn");
@@ -227,8 +245,11 @@ function flyToCart(imgElement){
         img.remove();
     },800);
 }
+
 </script>
 
+
+<!-- BUY NOW SCRIPT -->
 <script>
 document.querySelectorAll(".buy-now-btn-js").forEach(btn => {
 
@@ -249,16 +270,14 @@ document.querySelectorAll(".buy-now-btn-js").forEach(btn => {
 
       else if(data.status === "success"){
 
-        // 🛒 update cart badge
-        let badge = document.getElementById("cart-count");
+        let cartCount = document.getElementById("cart-count");
 
-        let current = parseInt(badge.innerText) || 0;
+        if(cartCount){
+            cartCount.innerText = parseInt(cartCount.innerText) + 1;
+            cartCount.style.display = "inline-block";
+        }
 
-        badge.innerText = current + 1;
-
-        badge.style.display = "inline-block";
-
-        window.location.href = "/cart/checkout/";
+        window.location.href = `/cart/buy-now/${productId}/`;
 
       }
 
@@ -269,5 +288,5 @@ document.querySelectorAll(".buy-now-btn-js").forEach(btn => {
 });
 </script>
 
-{% endblock %}
 
+{% endblock %}
