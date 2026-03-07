@@ -1,8 +1,7 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block content %}
-
-{% load humanize %}
 
 <div class="container mt-4">
 
@@ -16,7 +15,6 @@
 <!-- LEFT SIDE -->
 <div class="col-lg-8">
 
-<!-- ORDER SUMMARY -->
 <div class="card shadow-sm mb-4">
 
 <div class="card-header fw-bold">
@@ -27,7 +25,7 @@ Order Summary
 
 {% for item in items %}
 
-<div class="d-flex align-items-center border-bottom pb-3 mb-3">
+<div class="d-flex align-items-center border-bottom pb-3 mb-3" id="row-{{ item.id }}">
 
 <a href="{% url 'product_detail' item.product.id %}">
 
@@ -46,14 +44,32 @@ class="text-decoration-none text-dark fw-semibold">
 
 </a>
 
-<div class="text-muted small">
-Qty: {{ item.quantity }}
+<div class="d-flex align-items-center mt-2">
+
+<button type="button"
+class="btn btn-outline-secondary btn-sm decrease"
+data-id="{{ item.id }}">-</button>
+
+<span id="qty-{{ item.id }}" class="mx-2 fw-bold">
+{{ item.quantity }}
+</span>
+
+<button type="button"
+class="btn btn-outline-secondary btn-sm increase"
+data-id="{{ item.id }}">+</button>
+
+<button type="button"
+class="btn btn-danger btn-sm ms-3 remove-btn"
+data-id="{{ item.id }}">
+Remove
+</button>
+
 </div>
 
 </div>
 
 <div class="fw-semibold">
-₹ {{ item.total_price }}
+₹ <span id="total-{{ item.id }}">{{ item.total_price|intcomma }}</span>
 </div>
 
 </div>
@@ -103,9 +119,7 @@ Delivery Address
 class="btn btn-outline-primary btn-sm"
 data-bs-toggle="collapse"
 data-bs-target="#changeAddress">
-
 Change Address
-
 </button>
 
 {% else %}
@@ -119,9 +133,7 @@ Please add a delivery address before placing order.
 
 <a href="{% url 'accounts:add_address' %}"
 class="btn btn-primary btn-sm">
-
 + Add Address
-
 </a>
 
 </div>
@@ -169,9 +181,7 @@ value="{{ addr.id }}"
 
 <a href="{% url 'accounts:add_address' %}"
 class="btn btn-outline-primary btn-sm mt-2">
-
 + Add New Address
-
 </a>
 
 </div>
@@ -198,28 +208,12 @@ value="cod"
 checked>
 
 <label class="form-check-label fw-semibold">
-
 Cash on Delivery
-
 </label>
 
 <div class="text-muted small">
 Pay when your order arrives
 </div>
-
-</div>
-
-<hr>
-
-<div class="text-muted small">
-
-More options coming soon:
-<br>
-• UPI
-<br>
-• Credit / Debit Card
-<br>
-• Net Banking
 
 </div>
 
@@ -257,66 +251,31 @@ Price Details
 
 <hr>
 
-<!-- SUBTOTAL -->
-
 <div class="d-flex justify-content-between mb-2">
-
 <span>Subtotal</span>
-
-<span>
-₹ {{ total|intcomma }}
-</span>
-
+<span>₹ {{ subtotal|intcomma }}</span>
 </div>
-
-<!-- DISCOUNT -->
 
 <div class="d-flex justify-content-between mb-2 text-success">
-
 <span>Discount</span>
-
-<span>
-- ₹ 1,000
-</span>
-
+<span>- ₹ {{ discount|intcomma }}</span>
 </div>
 
-<!-- GST -->
-
 <div class="d-flex justify-content-between mb-2">
-
 <span>GST (18%)</span>
-
-<span>
-₹ {{ total|floatformat:0|intcomma }}
-</span>
-
+<span>₹ {{ gst|intcomma }}</span>
 </div>
 
-<!-- DELIVERY -->
-
 <div class="d-flex justify-content-between mb-2">
-
 <span>Delivery</span>
-
-<span class="text-success">
-FREE
-</span>
-
+<span class="text-success">FREE</span>
 </div>
 
 <hr>
 
-<!-- FINAL TOTAL -->
-
 <div class="d-flex justify-content-between fw-bold fs-5">
-
 <span>Total</span>
-
-<span>
-₹ {{ total|intcomma }}
-</span>
-
+<span>₹ {{ total|intcomma }}</span>
 </div>
 
 </div>
@@ -326,17 +285,13 @@ FREE
 {% if addresses %}
 
 <button class="btn btn-success btn-lg w-100 mt-3">
-
 Place Order
-
 </button>
 
 {% else %}
 
 <button class="btn btn-secondary btn-lg w-100 mt-3" disabled>
-
 Add Address to Place Order
-
 </button>
 
 {% endif %}
@@ -347,10 +302,94 @@ Add Address to Place Order
 
 </div>
 
-</div>
-
 </form>
 
 </div>
+
+
+<!-- JS FOR QTY UPDATE -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+// increase
+document.querySelectorAll(".increase").forEach(btn => {
+
+btn.addEventListener("click", function(){
+
+let itemId = this.dataset.id
+
+fetch(`/cart/inc/${itemId}/`,{
+method:"POST",
+headers:{
+"X-CSRFToken":"{{ csrf_token }}"
+}
+})
+
+.then(res=>res.json())
+.then(data=>{
+
+if(data.status==="success"){
+location.reload()
+}
+
+})
+})
+})
+
+// decrease
+document.querySelectorAll(".decrease").forEach(btn => {
+
+btn.addEventListener("click", function(){
+
+let itemId = this.dataset.id
+
+fetch(`/cart/dec/${itemId}/`,{
+method:"POST",
+headers:{
+"X-CSRFToken":"{{ csrf_token }}"
+}
+})
+
+.then(res=>res.json())
+.then(data=>{
+
+if(data.status==="success"){
+location.reload()
+}
+
+})
+})
+})
+
+// remove
+document.querySelectorAll(".remove-btn").forEach(btn => {
+
+btn.addEventListener("click", function(){
+
+let id = this.dataset.id
+
+if(!confirm("Remove item?")) return
+
+fetch(`/cart/remove/${id}/`,{
+method:"POST",
+headers:{
+"X-CSRFToken":"{{ csrf_token }}"
+}
+})
+
+.then(res=>res.json())
+.then(data=>{
+location.reload()
+})
+
+})
+
+})
+
+})
+
+</script>
 
 {% endblock %}

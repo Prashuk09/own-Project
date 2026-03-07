@@ -1,97 +1,187 @@
 {% extends 'base.html' %}
+{% load humanize %}
 
 {% block content %}
 
-<h3 class="mb-3">📦 My Orders</h3>
-<hr>
+<div class="container mt-4">
+
+<h3 class="mb-4">📦 My Orders</h3>
 
 {% if orders %}
 
-  {% for order in orders %}
+{% for order in orders %}
 
-  <div class="card mb-4 shadow-sm">
+<div class="card shadow-sm mb-4 border-0">
 
-    <div class="card-body">
+<div class="card-body">
 
-      <div class="d-flex justify-content-between align-items-center">
+<!-- ORDER HEADER -->
 
-        <h5>
-          <a href="{% url 'order_detail' order.id %}">
-            Order #{{ order.id }}
-          </a>
-        </h5>
+<div class="d-flex justify-content-between align-items-center">
 
-        <a href="{% url 'invoice' order.id %}" class="btn btn-sm btn-dark">
-          Download Invoice
-        </a>
+<div>
 
-      </div>
+<h5 class="mb-1">
 
-      <hr>
+<a href="{% url 'order_detail' order.id %}" 
+class="text-decoration-none">
 
-      <p class="mb-2">
-        Date: {{ order.created_at|date:"d M Y" }} <br>
-        Status: <b>{{ order.status }}</b> <br>
-        Total: <b>₹ {{ order.total_amount }}</b>
-      </p>
+Order #{{ order.id }}
 
-      <h6 class="mt-3">Items:</h6>
+</a>
 
-      <ul class="mb-0">
+</h5>
 
-       <div class="row align-items-center">
+<small class="text-muted">
+Placed on {{ order.created_at|date:"d M Y" }}
+</small>
 
-      <!-- LEFT SIDE (ORDER DETAILS) -->
-      <div class="col-md-9">
+</div>
 
-          <p>
-            Date: {{ order.created_at|date:"d M Y" }} <br>
-            Status: <b>{{ order.status }}</b> <br>
-            Total: ₹ {{ order.total_amount }}
-          </p>
+<div class="text-end">
 
-          <h6>Items:</h6>
+<a href="{% url 'invoice' order.id %}"
+class="btn btn-sm btn-outline-dark">
 
-          <ul>
-          {% for item in order.orderitem_set.all %}
-              <li>
-                {{ item.product.name }} 
-                (x{{ item.quantity }}) – ₹ {{ item.get_total }}
-              </li>
-          {% endfor %}
-          </ul>
+Download Invoice
 
-      </div>
+</a>
 
+</div>
 
-      <!-- RIGHT SIDE (PRODUCT IMAGE) -->
-      <div class="col-md-3 text-end">
+</div>
 
-          {% for item in order.orderitem_set.all|slice:":1" %}
+<hr>
 
-          <a href="{% url 'product_detail' item.product.id %}">
-              <img src="{{ item.product.image.url }}"
-                   style="max-width:180px; height:auto; border-radius:10px;">
-          </a>
+<div class="row align-items-center">
 
-          {% endfor %}
+<!-- ORDER DETAILS -->
 
-      </div>
+<div class="col-md-7">
 
-  </div>
+<p class="mb-2">
 
-      </ul>
+Status:
 
-    </div>
+{% if order.status == "Delivered" %}
+<span class="badge bg-success">{{ order.status }}</span>
 
-  </div>
+{% elif order.status == "Shipped" %}
+<span class="badge bg-info">{{ order.status }}</span>
 
-  {% endfor %}
+{% elif order.status == "Cancelled" %}
+<span class="badge bg-danger">{{ order.status }}</span>
+
+{% else %}
+<span class="badge bg-dark">{{ order.status }}</span>
+{% endif %}
+
+<br>
+
+Total Paid: <b>₹ {{ order.total_amount|intcomma }}</b>
+
+</p>
+
+<h6 class="mt-3 mb-2">Items</h6>
+
+<ul class="list-unstyled mb-0">
+
+{% for item in order.orderitem_set.all %}
+
+<li class="mb-1">
+
+<a href="{% url 'product_detail' item.product.id %}"
+class="text-decoration-none text-dark">
+
+{{ item.product.name }}
+
+</a>
+
+(x{{ item.quantity }})
+
+</li>
+
+{% endfor %}
+
+</ul>
+
+</div>
+
+<!-- PRODUCT IMAGES -->
+
+<div class="col-md-5 text-end">
+
+<div class="d-flex justify-content-end flex-wrap gap-2">
+
+{% for item in order.orderitem_set.all|slice:":3" %}
+
+<a href="{% url 'product_detail' item.product.id %}">
+
+<img src="{{ item.product.image.url }}"
+class="img-fluid rounded shadow-sm"
+style="height:80px; width:80px; object-fit:contain;">
+
+</a>
+
+{% endfor %}
+
+</div>
+
+</div>
+
+</div>
+
+<hr>
+
+<!-- ORDER ACTIONS -->
+
+<div class="d-flex justify-content-between align-items-center">
+
+<div>
+
+<a href="{% url 'order_detail' order.id %}" 
+class="btn btn-sm btn-primary">
+
+View Order Details
+
+</a>
+
+</div>
+
+<div>
+
+{% if order.status == "Delivered" %}
+
+<button class="btn btn-sm btn-outline-success">
+Buy Again
+</button>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
 
 {% else %}
 
-  <p class="text-muted">You have no orders yet.</p>
+<div class="text-center mt-5">
+
+<h5 class="text-muted">You haven't placed any orders yet</h5>
+
+<a href="/" class="btn btn-primary mt-3">
+Start Shopping
+</a>
+
+</div>
 
 {% endif %}
+
+</div>
 
 {% endblock %}

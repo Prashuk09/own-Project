@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
+{% load humanize %}
 
 <style>
 .progress-wrapper {
@@ -222,7 +223,7 @@ Cancellation request sent. Waiting for admin approval.
 <a href="{% url 'product_detail' item.product.id %}">
 <img src="{{ item.product.image.url }}"
 class="img-fluid rounded shadow-sm"
-style="height:150px; object-fit:cover;">
+style="height:150px; object-fit:contain;">
 </a>
 </div>
 
@@ -238,14 +239,14 @@ Quantity: {{ item.quantity }}
 </p>
 
 <p class="mb-0">
-₹ {{ item.product.price }}
+₹ {{ item.product.price|intcomma }}
 </p>
 </div>
 
 <div class="col-md-3 text-end">
 
 <h6>
-₹ {{ item.product.price|floatformat:2 }}
+₹ {{ item.item_total|intcomma }}
 </h6>
 
 {% if order.status == "Delivered" %}
@@ -259,9 +260,44 @@ Write Review
 
 </div>
 {% endfor %}
+</div>
+
+<!-- PRICE DETAILS -->
+
+<div class="card shadow-sm border-0 p-4 mt-4">
+
+<h5 class="fw-bold mb-3">Price Details</h5>
+
+<div class="d-flex justify-content-between mb-2">
+<span>Subtotal</span>
+<span>₹ {{ subtotal|intcomma }}</span>
+</div>
+
+<div class="d-flex justify-content-between mb-2 text-success">
+<span>Discount</span>
+<span>- ₹ {{ discount|intcomma }}</span>
+</div>
+
+<div class="d-flex justify-content-between mb-2">
+<span>GST (18%)</span>
+<span>₹ {{ gst|intcomma }}</span>
+</div>
+
+<div class="d-flex justify-content-between mb-2">
+<span>Delivery</span>
+<span class="text-success">FREE</span>
+</div>
+
+<hr>
+
+<div class="d-flex justify-content-between fw-bold fs-5">
+<span>Total Paid</span>
+<span>₹ {{ final_total|intcomma }}</span>
+</div>
 
 </div>
 
+</div>
 </div>
 
 {% endblock %}

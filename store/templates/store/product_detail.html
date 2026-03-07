@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load custom_filters %}
 {% load static %}
-
+{% load humanize %}
 {% block content %}
 
 <div class="container mt-5 product-wrapper">
@@ -18,9 +18,9 @@
             <button class="slider-btn left" onclick="prevImage()">❮</button>
 
             <img id="mainImage"
-                src="{{ product.image.url }}"
-                class="img-fluid rounded mb-3"
-                style="max-height:350px; object-fit:contain;">
+            src="{{ product.image.url }}"
+            class="img-fluid rounded mb-3 zoom-image"
+            style="max-height:350px; object-fit:contain;">
 
             <button class="slider-btn right" onclick="nextImage()">❯</button>
 
@@ -82,7 +82,7 @@
       </p>
 
       <h3 class="product-price">
-        ₹ {{ product.price }}
+        ₹ {{ product.price|intcomma }}
       </h3>
 
       {% if product.stock == 0 %}
@@ -294,16 +294,18 @@
 
         <div class="card h-100 shadow-sm border-0">
           
+          <a href="{% url 'product_detail' item.id %}">
           <img src="{{ item.image.url }}" 
-              class="card-img-top"
-              style="height:180px; object-fit:cover;">
+          class="card-img-top"
+          style="height:200px; object-fit:contain; padding:10px;">
+          </a>
 
           <div class="card-body text-center">
 
             <h6 class="card-title">{{ item.name }}</h6>
 
             <p class="text-muted small">
-              ₹ {{ item.price }}
+              ₹ {{ item.price|intcomma }}
             </p>
 
             <a href="{% url 'product_detail' item.id %}"
@@ -329,7 +331,18 @@
 
 </div>
 
+<style>
 
+.zoom-image{
+transition: transform .4s ease;
+cursor: zoom-in;
+}
+
+.zoom-image:hover{
+transform: scale(1.6);
+}
+
+</style>
 
 <script>
 

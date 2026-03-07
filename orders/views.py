@@ -161,7 +161,17 @@ def checkout(request):
     addresses = Address.objects.filter(user=request.user)
     default_address = addresses.filter(is_default=True).first()
 
-    total = sum(item.product.price * item.quantity for item in items)
+    # SUBTOTAL
+    subtotal = sum(item.product.price * item.quantity for item in items)
+
+    # DISCOUNT
+    discount = 1000 if subtotal > 2000 else 0
+
+    # GST 18%
+    gst = int((subtotal - discount) * 0.18)
+
+    # FINAL TOTAL
+    final_total = subtotal - discount + gst
 
     # address required
     if not addresses.exists():
@@ -188,7 +198,7 @@ def checkout(request):
         order = Order.objects.create(
             user=request.user,
             address=selected_address,
-            total_amount=total
+            total_amount=final_total
         )
 
         # CREATE ORDER ITEMS + REDUCE STOCK
@@ -203,11 +213,9 @@ def checkout(request):
                 price=product.price
             )
 
-            # reduce stock AFTER order
             product.stock -= item.quantity
             product.save()
 
-        # clear cart
         items.delete()
 
         return redirect('my_orders')
@@ -216,7 +224,10 @@ def checkout(request):
         'items': items,
         'default_address': default_address,
         'addresses': addresses,
-        'total': total
+        'subtotal': subtotal,
+        'discount': discount,
+        'gst': gst,
+        'total': final_total
     })
 
 @login_required
@@ -228,12 +239,31 @@ def order_detail(request, id):
 
     items = OrderItem.objects.filter(order=order)
 
+    # item total calculation
+    for item in items:
+        item.item_total = item.price * item.quantity
+
+    # subtotal
+    subtotal = sum(item.item_total for item in items)
+
+    # discount rule (same as checkout)
+    discount = 1000 if subtotal > 1000 else 0
+
+    # GST 18%
+    gst = int((subtotal - discount) * 0.18)
+
+    # final total
+    final_total = subtotal - discount + gst
+
     return render(request, "orders/order_detail.html", {
         "order": order,
         "items": items,
-        "cancel_request": cancel_request
+        "cancel_request": cancel_request,
+        "subtotal": subtotal,
+        "discount": discount,
+        "gst": gst,
+        "final_total": final_total
     })
-
 
 # ---------------- CANCEL REQUEST ---------------- #
 
