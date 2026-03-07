@@ -1,19 +1,186 @@
 {% extends 'base.html' %}
+{% load humanize %}
+
 {% block content %}
 
 <div class="container mt-4">
-<h3>My Wishlist ❤️</h3>
+
+<h3 class="mb-4">❤️ My Wishlist</h3>
+
+{% if items %}
+
+<div class="row">
 
 {% for item in items %}
-  <div class="card p-3 mb-2">
-    <a href="/product/{{ item.product.id }}/">
-      {{ item.product.name }}
-    </a>
-  </div>
-{% empty %}
-  <p>No items in wishlist.</p>
+
+<div class="col-md-3 mb-4">
+
+<div class="card h-100 shadow-sm border-0 product-card">
+
+<a href="/product/{{ item.product.id }}/">
+
+<img src="{{ item.product.image.url }}"
+class="card-img-top product-img"
+style="height:200px; object-fit:contain; padding:10px;">
+
+</a>
+
+<div class="card-body text-center">
+
+<a href="/product/{{ item.product.id }}/"
+class="text-decoration-none text-dark">
+
+<h6 class="card-title fw-semibold">
+{{ item.product.name }}
+</h6>
+
+</a>
+
+<p class="text-muted mb-3">
+₹ {{ item.product.price|intcomma }}
+</p>
+
+<div class="d-grid gap-2">
+
+<button
+class="btn btn-primary btn-sm add-cart-btn"
+data-id="{{ item.product.id }}"
+type="button">
+Add to Cart
+</button>
+
+<button
+class="btn btn-outline-danger btn-sm remove-wishlist-btn"
+data-id="{{ item.product.id }}"
+type="button">
+Remove
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
 {% endfor %}
 
 </div>
+
+{% else %}
+
+<div class="text-center mt-5">
+
+<h5 class="text-muted">Your wishlist is empty</h5>
+
+<a href="/" class="btn btn-primary mt-3">
+Start Shopping
+</a>
+
+</div>
+
+{% endif %}
+
+</div>
+
+
+<!-- ADD TO CART SCRIPT -->
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+  document.querySelectorAll(".add-cart-btn").forEach(btn => {
+
+    btn.addEventListener("click", function(){
+
+      let productId = this.dataset.id;
+
+      fetch(`/cart/add/${productId}/`,{
+          method:"POST",
+          headers:{
+              "X-CSRFToken":"{{ csrf_token }}"
+          }
+      })
+
+      .then(res=>res.json())
+      .then(data=>{
+
+        if(data.status === "login_required"){
+
+          alert("Please login first 🔐");
+          window.location.href="/login/";
+
+        }
+
+        else if(data.status === "out_of_stock"){
+
+          showToast("Out of stock ❌");
+
+        }
+
+        else if(data.status === "max_stock"){
+
+          showToast("Maximum quantity reached");
+
+        }
+
+        else if(data.status === "success"){
+
+          let cartCount=document.getElementById("cart-count");
+
+          if(cartCount){
+              cartCount.innerText=parseInt(cartCount.innerText)+1;
+              cartCount.style.display="inline-block";
+          }
+
+          // SIMPLE ANIMATION LIKE REMOVE
+
+          let card=this.closest(".col-md-3");
+
+          if(card){
+              card.style.transition="0.3s";
+              card.style.opacity="0";
+              setTimeout(()=>{card.remove()},300);
+          }
+
+          showToast("Added to cart 🛒");
+
+        }
+
+      })
+
+    });
+
+  });
+
+
+  // REMOVE FROM WISHLIST
+
+  document.querySelectorAll(".remove-wishlist-btn").forEach(btn => {
+
+    btn.addEventListener("click", function(){
+
+      let productId=this.dataset.id;
+
+      fetch(`/wishlist/${productId}/`)
+
+      .then(res=>res.json())
+      .then(data=>{
+
+        this.closest(".col-md-3").remove();
+
+        showToast("Removed from wishlist ❌");
+
+      });
+
+    });
+
+  });
+
+});
+
+</script>
 
 {% endblock %}

@@ -420,3 +420,29 @@ def my_orders(request):
     return render(request, 'orders/my_orders.html', {
         'orders': orders
     })
+    
+# ------------- BUY AGAIN -----------#
+@login_required
+def buy_again(request, order_id):
+
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    items = OrderItem.objects.filter(order=order)
+
+    for item in items:
+
+        cart_item, created = CartItem.objects.get_or_create(
+            cart=cart,
+            product=item.product
+        )
+
+        if created:
+            cart_item.quantity = item.quantity
+        else:
+            cart_item.quantity += item.quantity
+
+        cart_item.save()
+
+    return redirect("view_cart")

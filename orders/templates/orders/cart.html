@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div class="container mt-4">
+<div class="container mt-4" id="cart-container">
 
 <h3 class="mb-4">🛒 My Cart</h3>
 
@@ -107,7 +107,7 @@
 </div>
 
 
-<div class="row mt-4">
+<div class="row mt-4" id="cart-summary">
 
 <div class="col-md-6">
 
@@ -154,7 +154,7 @@ Start Shopping
 </div>
 
 
-<!-- ✅ CART JS (UNCHANGED) -->
+<!-- ✅ CART JS -->
 
 <script>
 
@@ -225,14 +225,14 @@ document.addEventListener("DOMContentLoaded", function(){
   })
   })
 
+
   // Remove
+
   document.querySelectorAll(".remove-btn").forEach(btn => {
 
     btn.addEventListener("click", function(){
 
       let id = this.dataset.id;
-
-      if(!confirm("Remove item?")) return;
 
       fetch(`/cart/remove/${id}/`, {
         method: "POST",
@@ -244,9 +244,48 @@ document.addEventListener("DOMContentLoaded", function(){
       .then(res => res.json())
       .then(data => {
 
-        document.getElementById(`row-${id}`).remove();
+        let row = document.getElementById(`row-${id}`);
 
-        location.reload();
+        if(row){
+
+            let itemTotal = row.querySelector("span[id^='total-']").innerText.replace("₹","").trim();
+            itemTotal = parseFloat(itemTotal);
+
+            let cartTotal = document.getElementById("cart-total").innerText.replace("Total: ₹","").trim();
+            cartTotal = parseFloat(cartTotal);
+
+            let newTotal = cartTotal - itemTotal;
+
+            document.getElementById("cart-total").innerText = "Total: ₹ " + newTotal;
+
+            row.style.transition="0.3s";
+            row.style.opacity="0";
+
+            setTimeout(()=>{
+
+                row.remove();
+
+                let remainingRows = document.querySelectorAll("tbody tr");
+
+                if(remainingRows.length === 0){
+
+                    document.getElementById("cart-container").innerHTML = `
+                    <div class="text-center mt-5">
+                        <h4>Your cart is empty 🛒</h4>
+                        <a href="/" class="btn btn-primary mt-3">
+                        Start Shopping
+                        </a>
+                    </div>
+                    `;
+
+                }
+
+            },300);
+
+        }
+
+        showToast("Item removed from cart ❌");
+
       });
 
     });

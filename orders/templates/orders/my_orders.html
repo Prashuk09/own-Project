@@ -153,7 +153,10 @@ View Order Details
 {% if order.status == "Delivered" %}
 
 <button class="btn btn-sm btn-outline-success">
+<a href="{% url 'buy_again' order.id %}"
+class="btn btn-sm btn-outline-success">
 Buy Again
+</a>
 </button>
 
 {% endif %}
