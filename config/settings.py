@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'accounts',
     'orders',
     'store',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [
@@ -77,16 +78,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'amazon',      # 👈 your DB name
-        'USER': 'root',
-        'PASSWORD': '',        # XAMPP default empty
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
+ 'default': {
+ 'ENGINE': 'django.db.backends.mysql',
+ 'NAME': 'amazon',
+ 'USER': 'root',
+ 'PASSWORD': 'root',
+ 'HOST': '127.0.0.1',
+ 'PORT': '3306',
+ }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators

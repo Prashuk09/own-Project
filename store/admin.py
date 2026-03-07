@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import Category, Product, Review, ProductImage
+from .models import Category, Product, Review, ProductImage, Wishlist
 
-
+admin.site.register(Wishlist)
 # Category register
 admin.site.register(Category)
 

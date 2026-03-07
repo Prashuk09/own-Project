@@ -2,91 +2,159 @@
 
 {% block content %}
 
-<h3>My Cart</h3>
-<hr>
+<div class="container mt-4">
+
+<h3 class="mb-4">🛒 My Cart</h3>
 
 {% if items %}
 
-<table class="table table-hover shadow-sm">
+<div class="card shadow-sm">
+<div class="card-body p-0">
+
+<table class="table align-middle mb-0">
+
+<thead class="table-light">
 
 <tr>
   <th>Product</th>
   <th>Price</th>
-  <th>Qty</th>
+  <th class="text-center">Qty</th>
   <th>Total</th>
   <th>Action</th>
 </tr>
+
+</thead>
+
+<tbody>
 
 {% for item in items %}
 
 <tr id="row-{{ item.id }}">
 
-  <td>{{ item.product.name }}</td>
+<td>
 
-  <td>₹ {{ item.product.price }}</td>
+<div class="d-flex align-items-center">
 
-  <td>
+<a href="{% url 'product_detail' item.product.id %}">
 
-    <button class="btn btn-outline-secondary decrease"
+<img src="{{ item.product.image.url }}"
+     style="width:80px;height:80px;object-fit:cover;border-radius:10px;"
+     class="me-3 shadow-sm">
+
+</a>
+
+<div>
+
+<a href="{% url 'product_detail' item.product.id %}"
+   class="text-decoration-none text-dark">
+
+<strong>{{ item.product.name }}</strong>
+
+</a>
+
+</div>
+
+</div>
+
+</td>
+
+<td class="fw-semibold">
+₹ {{ item.product.price }}
+</td>
+
+<td class="text-center">
+
+<div class="d-flex justify-content-center align-items-center">
+
+<button class="btn btn-outline-secondary decrease"
         data-id="{{ item.id }}">-</button>
 
-    <span id="qty-{{ item.id }}" class="mx-2">
+<span id="qty-{{ item.id }}" class="mx-3 fw-bold">
         {{ item.quantity }}
-    </span>
+</span>
 
-    <button class="btn btn-outline-secondary increase"
-            data-id="{{ item.id }}">+</button>
+<button class="btn btn-outline-secondary increase"
+        data-id="{{ item.id }}">+</button>
 
-  </td>
+</div>
 
-  <td>₹ <span id="total-{{ item.id }}">{{ item.total_price }}</span></td>
+</td>
 
-  <td>
+<td class="fw-semibold">
 
-    <button class="btn btn-sm btn-danger remove-btn"
-            data-id="{{ item.id }}">
-      Remove item
-    </button>
+₹ <span id="total-{{ item.id }}">{{ item.total_price }}</span>
 
-  </td>
+</td>
+
+<td>
+
+<button class="btn btn-sm btn-danger remove-btn"
+        data-id="{{ item.id }}">
+        Remove
+</button>
+
+</td>
 
 </tr>
 
 {% endfor %}
 
+</tbody>
+
 </table>
 
-<h4 id="cart-total" class="text-end text-success">
-  Total: ₹ {{ total }}
+</div>
+</div>
+
+
+<div class="row mt-4">
+
+<div class="col-md-6">
+
+<a href="/"
+class="btn btn-outline-primary">
+← Continue Shopping
+</a>
+
+</div>
+
+<div class="col-md-6 text-end">
+
+<h4 id="cart-total" class="text-success mb-3">
+
+Total: ₹ {{ total }}
+
 </h4>
 
-{% else %}
+<a href="{% url 'checkout' %}"
+class="btn btn-success btn-lg">
 
-<p>Your cart is empty</p>
+Proceed to Checkout →
 
-{% endif %}
+</a>
 
-{% if items %}
+</div>
 
-  <!-- When cart has products -->
-
-  <a href="{% url 'checkout' %}"
-     class="btn btn-success mt-3">
-     Proceed to Checkout
-  </a>
+</div>
 
 {% else %}
 
-  <!-- When cart is empty -->
+<div class="text-center mt-5">
 
-  <a href="/"
-     class="btn btn-primary mt-3">
-     Continue Shopping
-  </a>
+<h4>Your cart is empty 🛒</h4>
+
+<a href="/" class="btn btn-primary mt-3">
+Start Shopping
+</a>
+
+</div>
 
 {% endif %}
 
-<!-- ✅ CART JS -->
+</div>
+
+
+<!-- ✅ CART JS (UNCHANGED) -->
 
 <script>
 

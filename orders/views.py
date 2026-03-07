@@ -121,6 +121,24 @@ def view_cart(request):
 
     items = CartItem.objects.filter(cart=cart)
 
+    # 🔥 STOCK VALIDATION
+    for item in items:
+
+        product = item.product
+
+        # product completely out of stock
+        if product.stock == 0:
+            item.delete()
+            continue
+
+        # quantity more than available stock
+        if item.quantity > product.stock:
+            item.quantity = product.stock
+            item.save()
+
+    # refresh items after update
+    items = CartItem.objects.filter(cart=cart)
+
     total = sum(i.total_price() for i in items)
 
     return render(request, 'orders/cart.html', {
