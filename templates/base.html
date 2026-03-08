@@ -44,7 +44,15 @@
         {% if user.is_authenticated %}
 
         <li class="nav-item me-2">
+          <a href="/notifications/" class="position-relative">
 
+          🔔
+
+          <span class="badge bg-danger">
+          {{ unread_notifications }}
+          </span>
+          </a>
+          
           <a class="btn btn-light position-relative"
             href="{% url 'view_cart' %}"
             id="cart-btn">

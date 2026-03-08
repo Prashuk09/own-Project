@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from notifications.utils import create_notification
+
 
 # Category
 class Category(models.Model):
@@ -17,9 +19,32 @@ class Product(models.Model):
     description = models.TextField()
     stock = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return self.name
+
+
+    def save(self, *args, **kwargs):
+
+        is_new = self.pk is None
+
+        super().save(*args, **kwargs)
+
+        # 🔔 NEW PRODUCT NOTIFICATION
+        if is_new:
+
+            users = User.objects.all()
+
+            for user in users:
+
+                create_notification(
+                    user,
+                    "New Product Available",
+                    f"{self.name} is now available in store",
+                    f"/product/{self.id}/"
+                )
+
+
 
 # Product Images (Slider)
 class ProductImage(models.Model):

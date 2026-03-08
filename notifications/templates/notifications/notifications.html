@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+<h3>🔔 Notifications</h3>
+
+{% for n in notes %}
+
+<div class="card p-3 mb-2">
+
+<strong>{{ n.title }}</strong>
+
+<p class="mb-1">{{ n.message }}</p>
+
+<small class="text-muted">{{ n.created_at }}</small>
+
+</div>
+
+{% empty %}
+
+<p>No notifications yet.</p>
+
+{% endfor %}
+
+</div>
+
+{% endblock %}

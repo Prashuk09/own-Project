@@ -7,8 +7,12 @@
 
 <h3 class="mb-4">Checkout</h3>
 
-<form method="POST">
+<form method="POST" action="{% url 'checkout' %}">
 {% csrf_token %}
+
+{% if buy_now %}
+<input type="hidden" name="buy_now" value="1">
+{% endif %}
 
 <div class="row">
 
@@ -25,7 +29,7 @@ Order Summary
 
 {% for item in items %}
 
-<div class="d-flex align-items-center border-bottom pb-3 mb-3" id="row-{{ item.id }}">
+<div class="d-flex align-items-center border-bottom pb-3 mb-3" id="row-{{ item.product.id }}">
 
 <a href="{% url 'product_detail' item.product.id %}">
 
@@ -48,9 +52,9 @@ class="text-decoration-none text-dark fw-semibold">
 
 <button type="button"
 class="btn btn-outline-secondary btn-sm decrease"
-data-id="{{ item.id }}">-</button>
+data-id="{{ item.id|default:item.product.id }}">-</button>
 
-<span id="qty-{{ item.id }}" class="mx-2 fw-bold">
+<span id="qty-{{ item.product.id }}" class="mx-2 fw-bold">
 {{ item.quantity }}
 </span>
 
@@ -69,7 +73,9 @@ Remove
 </div>
 
 <div class="fw-semibold">
-₹ <span id="total-{{ item.id }}">{{ item.total_price|intcomma }}</span>
+₹ <span id="total-{{ item.product.id }}">
+{{ item.total_price|default:item.product.price|intcomma }}
+</span>
 </div>
 
 </div>

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from .models import Cart, CartItem, Order, OrderItem, CancelRequest
 from accounts.models import Address
 from store.models import Product
+from notifications.utils import create_notification
 
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
@@ -155,25 +156,31 @@ def checkout(request):
     cart = get_cart(request)
     items = cart.cartitem_set.all()
 
-    if not items:
+    buy_now = request.GET.get("buy_now") or request.POST.get("buy_now")
+    buy_now_product = request.session.get("buy_now_product")
+
+    if not items and not buy_now:
         return redirect('view_cart')
 
     addresses = Address.objects.filter(user=request.user)
     default_address = addresses.filter(is_default=True).first()
 
-    # SUBTOTAL
-    subtotal = sum(item.product.price * item.quantity for item in items)
+    # BUY NOW subtotal
+    if buy_now and buy_now_product:
+        product = get_object_or_404(Product, id=buy_now_product)
+        subtotal = product.price
+    else:
+        subtotal = sum(item.product.price * item.quantity for item in items)
 
     # DISCOUNT
     discount = 1000 if subtotal > 2000 else 0
 
-    # GST 18%
+    # GST
     gst = int((subtotal - discount) * 0.18)
 
     # FINAL TOTAL
     final_total = subtotal - discount + gst
 
-    # address required
     if not addresses.exists():
         messages.error(request, "Please add a delivery address first.")
         return redirect("accounts:add_address")
@@ -187,13 +194,6 @@ def checkout(request):
         else:
             selected_address = default_address or addresses.first()
 
-        # STOCK CHECK FIRST
-        for item in items:
-            product = item.product
-            if item.quantity > product.stock:
-                messages.error(request, f"{product.name} is out of stock.")
-                return redirect("view_cart")
-
         # ORDER CREATE
         order = Order.objects.create(
             user=request.user,
@@ -201,22 +201,59 @@ def checkout(request):
             total_amount=final_total
         )
 
-        # CREATE ORDER ITEMS + REDUCE STOCK
-        for item in items:
+        create_notification(
+            request.user,
+            "Order Placed",
+            f"Your order #{order.id} has been placed successfully",
+            f"/cart/order/{order.id}/"
+        )
+        # BUY NOW ORDER
+        if buy_now and buy_now_product:
 
-            product = item.product
+            product = get_object_or_404(Product, id=buy_now_product)
+
+            if product.stock < 1:
+                messages.error(request, f"{product.name} is out of stock.")
+                return redirect("product_detail", product.id)
 
             OrderItem.objects.create(
                 order=order,
                 product=product,
-                quantity=item.quantity,
+                quantity=1,
                 price=product.price
             )
 
-            product.stock -= item.quantity
+            product.stock -= 1
             product.save()
 
-        items.delete()
+            # session clear
+            del request.session["buy_now_product"]
+
+        # CART ORDER
+        else:
+
+            # STOCK CHECK FIRST
+            for item in items:
+                product = item.product
+                if item.quantity > product.stock:
+                    messages.error(request, f"{product.name} is out of stock.")
+                    return redirect("view_cart")
+
+            for item in items:
+
+                product = item.product
+
+                OrderItem.objects.create(
+                    order=order,
+                    product=product,
+                    quantity=item.quantity,
+                    price=product.price
+                )
+
+                product.stock -= item.quantity
+                product.save()
+
+            items.delete()
 
         return redirect('my_orders')
 
@@ -227,7 +264,8 @@ def checkout(request):
         'subtotal': subtotal,
         'discount': discount,
         'gst': gst,
-        'total': final_total
+        'total': final_total,
+        'buy_now': buy_now
     })
 
 @login_required
@@ -284,6 +322,13 @@ def cancel_request(request, id):
             order=order,
             user=request.user,
             reason=reason
+        )
+        
+        create_notification(
+            request.user,
+            "Cancel Request Sent",
+            f"Cancel request submitted for order #{order.id}",
+            f"/cart/order/{order.id}/"
         )
 
         messages.success(request, "Cancellation request submitted.")
@@ -397,12 +442,26 @@ def buy_now(request, product_id):
         "total_price": product.price
     }]
 
-    total = product.price
+    # subtotal
+    subtotal = product.price
 
+    # discount rule (same as checkout)
+    discount = 1000 if subtotal > 1000 else 0
+
+    # gst
+    gst = int((subtotal - discount) * 0.18)
+
+    # final total
+    total = subtotal - discount + gst
+    request.session["buy_now_product"] = product.id
+    
     return render(request, "orders/checkout.html", {
         "items": items,
         "buy_now": True,
         "product": product,
+        "subtotal": subtotal,
+        "discount": discount,
+        "gst": gst,
         "total": total,
         "addresses": addresses,
         "default_address": default_address

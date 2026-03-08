@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'accounts',
     'orders',
     'store',
+    'notifications',
     'django.contrib.humanize',
 ]
 

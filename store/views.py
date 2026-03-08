@@ -6,6 +6,10 @@ from django.db.models import Avg, Count
 from store.forms import ReviewForm
 from .models import Wishlist
 from django.http import JsonResponse
+from django.contrib.auth.models import User
+from notifications.utils import create_notification
+
+
 
 def home(request):
     query = request.GET.get('q')
@@ -165,3 +169,14 @@ def wishlist(request):
     items = Wishlist.objects.filter(user=request.user)
     return render(request, 'store/wishlist.html', {'items': items})
 
+# New Product Notification
+users = User.objects.all()
+
+for user in users:
+
+    create_notification(
+        user,
+        "New Product Available",
+        f"{Product.name} is now available in store",
+        f"/product/{Product.id}/"
+    )

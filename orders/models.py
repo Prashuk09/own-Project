@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from store.models import Product
 from accounts.models import Address
+from notifications.utils import create_notification
 
 class Cart(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -45,7 +46,41 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Order #{self.id} - {self.user.username}"
-    
+
+    # 🔔 Notification Trigger
+    def save(self, *args, **kwargs):
+
+        # check old status
+        if self.pk:
+            old_order = Order.objects.get(pk=self.pk)
+
+            if old_order.status != self.status:
+
+                if self.status == "Shipped":
+                    create_notification(
+                        self.user,
+                        "Order Shipped",
+                        f"Your order #{self.id} has been shipped",
+                        f"/cart/order/{self.id}/"
+                    )
+
+                elif self.status == "Delivered":
+                    create_notification(
+                        self.user,
+                        "Order Delivered",
+                        f"Your order #{self.id} has been delivered",
+                        f"/cart/order/{self.id}/"
+                    )
+
+                elif self.status == "Cancelled":
+                    create_notification(
+                        self.user,
+                        "Order Cancelled",
+                        f"Your order #{self.id} has been cancelled",
+                        f"/cart/order/{self.id}/"
+                    )
+
+        super().save(*args, **kwargs)
 class OrderItem(models.Model):
 
     order = models.ForeignKey(Order, on_delete=models.CASCADE)
@@ -80,11 +115,20 @@ class CancelRequest(models.Model):
 
     # 🔥 IMPORTANT FIXED SAVE METHOD
     def save(self, *args, **kwargs):
+
         super().save(*args, **kwargs)
 
         if self.is_approved:
+
             self.order.status = "Cancelled"
             self.order.save()
+
+            create_notification(
+                self.user,
+                "Order Cancelled",
+                f"Your order #{self.order.id} has been cancelled",
+                f"/cart/order/{self.order.id}/"
+            )
     
 
 
