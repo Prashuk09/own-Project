@@ -1,29 +1,191 @@
 {% extends "base.html" %}
+{% load humanize %}
 
 {% block content %}
 
 <div class="container mt-4">
 
-<h3>🔔 Notifications</h3>
+<h3 class="mb-4">🔔 Notifications</h3>
 
-{% for n in notes %}
-
-<div class="card p-3 mb-2">
-
-<strong>{{ n.title }}</strong>
-
-<p class="mb-1">{{ n.message }}</p>
-
-<small class="text-muted">{{ n.created_at }}</small>
+<button id="markAll"
+class="btn btn-sm btn-outline-primary">
+Mark all as read
+</button>
 
 </div>
 
-{% empty %}
+{% if notes %}
 
-<p>No notifications yet.</p>
+<div class="row">
+
+{% for n in notes %}
+
+<div class="col-md-12 mb-3">
+
+<a href="{% url 'notification_open' n.id %}"
+class="text-decoration-none text-dark">
+
+<div class="card shadow-sm border-0 notification-card {% if not n.is_read %}unread{% endif %}">
+
+<div class="card-body">
+
+<div class="d-flex align-items-center">
+
+<!-- IMAGE -->
+
+{% if n.product and n.product.image %}
+
+<img src="{{ n.product.image.url }}"
+style="width:60px;height:60px;object-fit:cover;border-radius:8px"
+class="me-3">
+
+{% else %}
+
+<div class="notification-icon me-3">
+🔔
+</div>
+
+{% endif %}
+
+<!-- TEXT -->
+
+<div class="flex-grow-1">
+
+<h6 class="mb-1 fw-semibold">
+{{ n.title }}
+</h6>
+
+<p class="mb-1 text-muted">
+{{ n.message }}
+</p>
+
+{% if n.product_name %}
+
+<p class="mb-1 text-muted small">
+<strong>Product:</strong> {{ n.product_name }}
+</p>
+
+{% endif %}
+
+<small class="text-muted">
+{{ n.created_at|naturaltime }}
+</small>
+
+<br>
+
+<button
+class="btn btn-sm btn-outline-success mark-read"
+data-id="{{ n.id }}">
+Mark Read
+</button>
+
+</div>
+
+<!-- NEW BADGE -->
+
+{% if not n.is_read %}
+
+<span class="badge bg-primary">
+New
+</span>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+</a>
+
+</div>
 
 {% endfor %}
 
 </div>
 
+{% else %}
+
+<div class="text-center mt-5">
+
+<h5 class="text-muted">
+No notifications yet
+</h5>
+
+</div>
+
+{% endif %}
+
+</div>
+
+
+<style>
+
+.notification-card{
+transition:0.25s;
+border-radius:12px;
+}
+
+.notification-card:hover{
+transform:translateY(-2px);
+box-shadow:0 6px 18px rgba(0,0,0,0.08);
+}
+
+.notification-card.unread{
+background:#f8fbff;
+border-left:4px solid #0d6efd;
+}
+
+.notification-icon{
+width:60px;
+height:60px;
+border-radius:50%;
+background:#f1f1f1;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+}
+
+</style>
+
+<script>
+
+// single read
+
+document.querySelectorAll(".mark-read").forEach(btn=>{
+
+btn.onclick=function(){
+
+let id=this.dataset.id
+
+fetch(`/notifications/mark/${id}/`)
+.then(res=>res.json())
+.then(data=>{
+
+location.reload()
+
+})
+
+}
+
+})
+
+
+// mark all
+
+document.getElementById("markAll").onclick=function(){
+
+fetch("/notifications/mark-all/")
+.then(res=>res.json())
+.then(data=>{
+
+location.reload()
+
+})
+
+}
+
+</script>
 {% endblock %}

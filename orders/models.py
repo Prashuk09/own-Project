@@ -123,12 +123,7 @@ class CancelRequest(models.Model):
             self.order.status = "Cancelled"
             self.order.save()
 
-            create_notification(
-                self.user,
-                "Order Cancelled",
-                f"Your order #{self.order.id} has been cancelled",
-                f"/cart/order/{self.order.id}/"
-            )
+           
     
 
 

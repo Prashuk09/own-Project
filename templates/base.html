@@ -43,70 +43,91 @@
 
         {% if user.is_authenticated %}
 
-        <li class="nav-item me-2">
-          <a href="/notifications/" class="position-relative">
+          <!-- 🔔 NOTIFICATION -->
+          <li class="nav-item me-3 position-relative">
+
+          <a class="nav-link notification-bell position-relative"
+            href="{% url 'notifications' %}">
 
           🔔
 
-          <span class="badge bg-danger">
-          {{ unread_notifications }}
+          {% if unread_count > 0 %}
+
+          <span class="badge bg-danger position-absolute top-0 start-100 translate-middle rounded-pill">
+
+          {{ unread_count }}
+
           </span>
+
+          {% endif %}
+
           </a>
-          
-          <a class="btn btn-light position-relative"
-            href="{% url 'view_cart' %}"
-            id="cart-btn">
 
-            🛒 Cart
+          </li>
 
-            {% if cart_count > 0 %}
-            <span id="cart-count"
-                  class="position-absolute top-0 start-100 translate-middle
-                        badge rounded-pill bg-danger">
+          <!-- 🛒 CART -->
+          <li class="nav-item me-2 position-relative">
+
+            <a class="btn btn-light position-relative"
+               href="{% url 'view_cart' %}">
+
+              🛒 Cart
+
+              {% if cart_count > 0 %}
+              <span id="cart-count"
+                    class="position-absolute top-0 start-100 translate-middle
+                    badge rounded-pill bg-danger">
 
                 {{ cart_count }}
 
-            </span>
-            {% else %}
-            <span id="cart-count"
-                  class="position-absolute top-0 start-100 translate-middle
-                        badge rounded-pill bg-danger"
-                  style="display:none;">
+              </span>
+              {% else %}
+
+              <span id="cart-count"
+                    class="position-absolute top-0 start-100 translate-middle
+                    badge rounded-pill bg-danger"
+                    style="display:none;">
 
                 0
 
-            </span>
-            {% endif %}
+              </span>
 
-          </a>
+              {% endif %}
 
-        </li>
+            </a>
 
-        <li class="nav-item me-2">
-          <a class="btn btn-info" href="{% url 'wishlist' %}">
-            ❤️ wishlist
-          </a>
-        </li>
-    
-        <li class="nav-item me-2">
-          <a class="btn btn-info" href="{% url 'my_orders' %}">
-            📜 Orders
-          </a>
-        </li>
+          </li>
 
-        <li class="nav-item me-2">
-          <a class="btn btn-secondary" href="{% url 'accounts:profile' %}">
+
+          <!-- ❤️ WISHLIST -->
+          <li class="nav-item me-2">
+            <a class="btn btn-info" href="{% url 'wishlist' %}">
+              ❤️ wishlist
+            </a>
+          </li>
+
+          <!-- 📜 ORDERS -->
+          <li class="nav-item me-2">
+            <a class="btn btn-info" href="{% url 'my_orders' %}">
+              📜 Orders
+            </a>
+          </li>
+
+          <!-- 👤 PROFILE -->
+          <li class="nav-item me-2">
+            <a class="btn btn-secondary" href="{% url 'accounts:profile' %}">
               👤 Profile
-          </a>
-        </li>
+            </a>
+          </li>
 
-        <li class="nav-item">
-          <a class="btn btn-warning" href="{% url 'logout' %}">
-            Logout
-          </a>
-        </li>
+          <!-- 🚪 LOGOUT -->
+          <li class="nav-item">
+            <a class="btn btn-warning" href="{% url 'logout' %}">
+              Logout
+            </a>
+          </li>
 
-        <div id="toast-box"></div>
+          <div id="toast-box"></div>
 
         {% else %}
 
@@ -123,8 +144,9 @@
         </li>
 
         {% endif %}
-        
+
       </ul>
+
     </div>
 
   </div>
@@ -167,5 +189,51 @@ function showToast(message){
 }
 </script>
 
+<script>
+
+document.addEventListener("DOMContentLoaded", function(){
+
+let count = parseInt("{{ unread_count }}")
+
+let bell = document.querySelector(".notification-bell")
+
+if(count > 0){
+
+bell.classList.add("spark")
+
+}
+
+})
+
+</script>
+
+<script>
+
+function updateBell(){
+
+fetch("/notifications/count/")
+.then(res=>res.json())
+.then(data=>{
+
+let badge=document.querySelector(".notification-count")
+
+if(data.count>0){
+
+badge.innerText=data.count
+badge.style.display="inline"
+
+}else{
+
+badge.style.display="none"
+
+}
+
+})
+
+}
+
+setInterval(updateBell,5000)
+
+</script>
 </body>
 </html>
